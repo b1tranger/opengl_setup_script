@@ -19,7 +19,6 @@ echo.
 
 set "MSYS2_DIR=C:\msys64"
 set "INSTALLER_EXE=%PROJECT_ROOT%\Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe"
-set "LAB0_DIR=%PROJECT_ROOT%\sample_projects\Lab0_Basic_Window"
 set "LOCAL_PKG_DIR=%PROJECT_ROOT%\Dependencies\msys2_packages"
 set "LOCAL_VSIX=%PROJECT_ROOT%\Dependencies\vscode_extensions\ms-vscode.makefile-tools.vsix"
 
@@ -137,25 +136,75 @@ echo   SUCCESS! OpenGL C++ Build Environment configured!
 echo ============================================================
 echo.
 
-set /p BUILD_TEST="Would you like to build and run the reference Lab0 (Lab0_Basic_Window) now? [Y/N]: "
-if /i "%BUILD_TEST%"=="Y" goto DO_TEST_BUILD
+:FINISH
+cls
+echo ============================================================
+echo   OpenGL C++ Build Environment - Setup Completed!
+echo ============================================================
+echo.
+echo Useful Links ^& Resources:
+echo.
+echo [1] Sample Projects (GitHub Repository):
+echo     https://github.com/b1tranger/opengl_setup_script/tree/main/sample_projects
+echo.
+echo [2] Sample Projects (Local Directory):
+echo     %PROJECT_ROOT%\sample_projects
+echo.
+echo [3] OpenGL Technical Notes:
+echo     https://github.com/b1tranger/opengl_setup_script/tree/main/notes
+echo.
+echo ============================================================
+echo   Interactive Options:
+echo ============================================================
+echo   [1] Open Local Sample Projects Folder (File Explorer) ^& View Build Instructions
+echo   [2] Open OpenGL Technical Notes on GitHub (Web Browser)
+echo   [0] Exit Setup (or press Enter)
+echo.
+set "LINK_CHOICE="
+set /p LINK_CHOICE="Select an option [1-2, 0, or press Enter to exit]: "
+
+if "%LINK_CHOICE%"=="1" goto OPTION_1
+if "%LINK_CHOICE%"=="2" goto OPTION_2
+goto EXIT_SCRIPT
+
+:OPTION_1
+cls
+echo ============================================================
+echo   Opening Local Sample Projects in File Explorer...
+echo ============================================================
+echo   Path: %PROJECT_ROOT%\sample_projects
+echo.
+start "" "%PROJECT_ROOT%\sample_projects"
+echo.
+echo ============================================================
+echo   How to Build ^& Run OpenGL Projects:
+echo ============================================================
+echo.
+echo   Using Makefile (Recommended):
+echo   Open Command Prompt (CMD), PowerShell, or VS Code Terminal,
+echo   navigate to any lab folder (e.g. sample_projects\Lab0_Basic_Window),
+echo   and execute:
+echo.
+echo       make win
+echo.
+echo ============================================================
+echo.
+echo Press any key to return to the menu...
+pause >nul
 goto FINISH
 
-:DO_TEST_BUILD
+:OPTION_2
+cls
+echo ============================================================
+echo   Opening OpenGL Technical Notes in default browser...
+echo ============================================================
+echo   URL: https://github.com/b1tranger/opengl_setup_script/tree/main/notes
 echo.
-if not exist "%LAB0_DIR%" (
-    echo [ERROR] Sample project directory not found at "%LAB0_DIR%"
-    goto FINISH
-)
-echo Navigating to "%LAB0_DIR%" and executing 'make win'...
-cd /d "%LAB0_DIR%"
-if exist "%MSYS2_DIR%\usr\bin\make.exe" (
-    "%MSYS2_DIR%\usr\bin\make.exe" win
-) else (
-    make win
-)
+start "" "https://github.com/b1tranger/opengl_setup_script/tree/main/notes"
+echo.
+echo Press any key to return to the menu...
+pause >nul
+goto FINISH
 
-:FINISH
-echo.
-pause
+:EXIT_SCRIPT
 exit /b 0

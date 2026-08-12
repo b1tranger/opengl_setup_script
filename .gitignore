@@ -1,1 +1,3 @@
 /temp
+*.exe
+!Graphics_Lab_Install_AG/msys2-x86_64-20260611.exe
