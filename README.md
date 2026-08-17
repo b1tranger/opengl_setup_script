@@ -1,6 +1,6 @@
 # Modern OpenGL (GLFW + GLAD + MinGW/MSYS2) 1-Click Setup & Automation
 
-An automated setup package and comprehensive technical guide for configuring **Modern OpenGL (v3.3 Core Profile with GLFW and GLAD)** on Windows environments (Windows 10 / 11 64-Bit). Automates MSYS2 installation, `pacman` toolchain configuration (`base-devel`, `gcc`), environment variable (`PATH`) registration, `#include <KHR/khrplatform.h>` header fixes, and `glfw3.dll` deployment out of the box.
+An automated setup package and comprehensive technical guide for configuring **Modern OpenGL (v3.3 Core Profile with GLFW and GLAD)** on Windows environments (Windows 10 / 11 64-Bit). Automates MSYS2 installation, offline-first `pacman` toolchain configuration (`base-devel`, `gcc`/`g++`, `make`), safe Windows System `PATH` environment variable registration, `#include <KHR/khrplatform.h>` header fixes, and `glfw3.dll` deployment out of the box.
 
 Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_Animations_Modern_OpenGL
 
@@ -15,33 +15,115 @@ Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_
 
 ## ⚡ Quick Start (Automated Setup)
 
-1. Right-click **`install_opengl_admin.bat`** and select **Run as Administrator** (or double-click to run).
-2. Confirm the Windows UAC prompt.
-3. The script auto-detects or installs **MSYS2 (`C:\msys64`)**, installs `g++.exe` and `make.exe` via `pacman`, and permanently updates your System `PATH`.
-4. Optionally accept the built-in prompt to test build and run **`sample_projects/Lab0_Basic_Window`**.
-5. To build any project manually, open **Command Prompt (CMD)** or **PowerShell** in any project folder (e.g. `sample_projects/Lab1_Color_Triangle`) and run:
-   ```bash
-   make win
-   ```
 
-To clean up built binaries or remove PATH entries, right-click **`uninstall_opengl_admin.bat`** and select **Run as Administrator**.
+### 1. Download or Clone the Repository
 
-You can also watch this video:
+- **Option A — Clone with Git:**
+  ```bash
+  git clone https://github.com/b1tranger/opengl_setup_script.git
+  cd opengl_setup_script
+  ```
 
-<a href="https://youtu.be/AXdDEYzfdxI "><img width="1488" height="837" alt="Your paragraph text" src="https://github.com/user-attachments/assets/a9f2f281-d7be-4b21-8a2f-58d0e232fb4b" />
-</a>
-
+- **Option B — Download ZIP:**
+  1. Click the green **Code** button at the top of the GitHub repository page and select **Download ZIP** (or [Click here to download ZIP](https://github.com/b1tranger/opengl_setup_script/archive/refs/heads/main.zip)).
+  2. Extract the downloaded `.zip` folder to your preferred location.
 
 ---
 
-## ✨ Features & What's New
+### 2. Run the Automated Installer
 
-- ⚡ **1-Click Automated Setup**: Self-elevating Administrator installer configures MSYS2, GCC compiler, and Make build tools seamlessly.
-- 📦 **Latest MSYS2 Toolchain**: Pre-packaged with the latest stable `msys2-x86_64-20260611.exe` installer in `Graphics_Lab_Install_AG`.
-- 🛠️ **Automated Environment PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Windows System Environment Variables without text truncation bugs.
-- 🔧 **Header Include Fixes**: Resolves `#include <KHR/khrplatform.h>` GLAD compilation errors out of the box.
-- 📁 **Cross-Platform Makefile Support**: Built-in target rules for Windows (`make win`) and Linux (`make linux`).
-- 🎨 **Pre-Packaged Reference Labs**: Includes beginner to intermediate OpenGL labs demonstrating window creation, programmable shader triangles, and interactive input.
+1. Right-click **`install_opengl_admin.bat`** and select **Run as Administrator** (or double-click to run with self-elevation).
+2. Confirm the Windows UAC prompt when prompted.
+3. The script executes the automated 5-step setup workflow:
+   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64`. If missing, launches the bundled `Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe` installer.
+   - **[2/5] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` (with automatic network fallback) and installs `base-devel`, `gcc`, `g++`, and `make`.
+   - **[3/5] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without character-length truncation.
+   - **[4/5] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
+   - **[5/5] VS Code Integration**: Detects VS Code and optionally installs the **Makefile Tools extension** (`ms-vscode.makefile-tools`) from the localized offline `.vsix` archive in `Dependencies\vscode_extensions`.
+4. **Interactive Completion Dashboard**:
+   - Choose **`[1]`** to open the local `sample_projects` folder in Windows File Explorer and view project build instructions.
+   - Choose **`[2]`** to open online OpenGL technical notes on GitHub in your default browser.
+   - Press **`Enter`** (or type **`0`**) to exit setup.
+
+---
+
+
+## 🎥 Video Walkthrough
+
+Watch the step-by-step video guide:
+
+<a href="https://youtu.be/AXdDEYzfdxI"><img width="1488" height="837" alt="Modern OpenGL Setup Video Guide" src="https://github.com/user-attachments/assets/a9f2f281-d7be-4b21-8a2f-58d0e232fb4b" /></a>
+
+---
+
+## 🛠️ How to Build & Run Projects
+
+### Using Makefile (Recommended)
+Open **Command Prompt (CMD)**, **PowerShell**, or **VS Code Terminal**, navigate to any sample project directory (e.g., `sample_projects/Lab0_Basic_Window` or `sample_projects/Lab1_Color_Triangle`), and execute:
+
+```bash
+# Windows (CMD / PowerShell / VS Code)
+make win
+
+# Linux Terminal
+make linux
+```
+
+### Manual Command Line Compilation (Windows)
+```cmd
+g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./build/main.exe -Llib -lglfw3 -lopengl32 -lgdi32
+./build/main.exe
+```
+
+> [!NOTE]
+> For Linux environments, install dependencies via your package manager first:  
+> `sudo apt update && sudo apt install build-essential libglfw3-dev libgl1-mesa-dev`  
+> Then run `make linux` in any project directory.
+
+---
+
+
+## ✨ Key Features & Technical Fixes
+
+- ⚡ **1-Click Self-Elevating Installer**: `install_opengl_admin.bat` automatically requests Administrator privileges and automates the entire toolchain installation.
+- 📦 **Offline-First Package Deployment**: Installs GCC compiler and Make build utilities from pre-downloaded package archives in `Dependencies\msys2_packages` without requiring an active internet connection.
+- 🛠️ **Non-Destructive PATH Registration**: Appends MSYS2 binary directories to Windows Machine environment variables using PowerShell registry access, preventing legacy `setx` string-truncation bugs.
+- 🧩 **VS Code Makefile Tools Integration**: Detects VS Code and installs `ms-vscode.makefile-tools` from local `.vsix` in `Dependencies\vscode_extensions`.
+- 🔧 **GLAD Include Fixes**: Resolves `#include <KHR/khrplatform.h>` compiler errors out of the box using clean relative include paths.
+- 🚀 **Dynamic DLL Bundling**: Automatically pairs `glfw3.dll` in `./build/` alongside `main.exe` to prevent `LoadLibrary` runtime missing DLL errors.
+- 📁 **Cross-Platform Makefiles**: Ready-to-use Makefile configuration with targets for both Windows (`make win`) and Linux (`make linux`).
+
+---
+
+## 🎨 Sample Projects Included
+
+| Project Folder | Description |
+| :--- | :--- |
+| **`sample_projects/Lab0_Basic_Window`** | Basic GLFW window initialization, viewport resize callbacks, GLAD loading, and frame buffer clearing. |
+| **`sample_projects/Lab1_Color_Triangle`** | Modern OpenGL 3.3 Core Profile pipeline, VAO/VBO vertex attribute buffers, GLSL vertex & fragment shaders, RGB interpolation. |
+| **`sample_projects/Lab2_Interactive_Input`** | Real-time keyboard event callbacks (`ESC` to exit, `R`/`G`/`B` to manipulate background color channels, `SPACE` to reset). |
+
+---
+
+## 🧹 Uninstallation & Cleanup (`uninstall_opengl_admin.bat`)
+
+To clean up built binaries, remove PATH registrations, or completely uninstall MSYS2:
+
+1. Right-click **`uninstall_opengl_admin.bat`** and select **Run as Administrator**.
+2. Select your desired option:
+   - **`[1]` Remove MSYS2 paths from System PATH**: Removes `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` from Windows System PATH.
+   - **`[2]` Clean compiled output binaries**: Deletes all generated `main.exe` files across sample project build folders.
+   - **`[3]` Uninstall MSYS2 packages**: Runs `pacman -Rns base-devel gcc` and cleans package cache.
+   - **`[4]` Full Uninstallation**: Completely removes the `C:\msys64` directory, cleans System PATH entries, and deletes output binaries.
+
+---
+
+## 📚 Technical Guides & Reference Notes
+
+- **[guide.md](guide.md)** — Comprehensive technical setup guide, root causes of common setup errors, and troubleshooting steps.
+- **[notes/manualSetupGuide.md](notes/manualSetupGuide.md)** — Manual step-by-step setup guide for MSYS2, MinGW toolchains, compiler commands, and PATH configuration.
+- **[notes/colorGuide.md](notes/colorGuide.md)** — OpenGL RGB color model, normalized color floats `[0.0, 1.0]`, and shader gradient interpolation.
+- **[notes/circleGuide.md](notes/circleGuide.md)** — Circle rasterization techniques (trigonometric polygon approximation, Midpoint circle algorithm, and GLSL fragment shaders).
 
 ---
 
@@ -53,22 +135,31 @@ opengl_setup_script/
 ├── guide.md                       # Comprehensive technical troubleshooting guide & manual setup
 ├── install_opengl_admin.bat       # Self-elevating Administrator installer (1-Click setup)
 ├── uninstall_opengl_admin.bat     # Administrator cleanup & uninstallation script
-├── Dependencies/                   # Localized offline setup dependencies
+├── Dependencies/                  # Localized offline setup dependencies
 │   ├── msys2_packages/            # Pre-downloaded pacman package archives (.pkg.tar.zst)
 │   └── vscode_extensions/         # Localized VS Code Makefile Tools extension (.vsix)
 ├── Graphics_Lab_Install_AG/       # Core install dependencies & setup guide
-│   ├── msys2-x86_64-20260611.exe # Updated latest MSYS2 64-bit installer executable
+│   ├── msys2-x86_64-20260611.exe  # Latest MSYS2 64-bit installer executable
 │   └── Setup.pdf                  # Setup instructions & original lab setup reference
 ├── sample_projects/               # Structured Modern OpenGL sample projects
 │   ├── Lab0_Basic_Window/         # Basic GLFW window creation & background clear
 │   ├── Lab1_Color_Triangle/       # OpenGL 3.3 Core Profile programmable shader RGB triangle
 │   └── Lab2_Interactive_Input/    # Interactive keyboard callbacks & background color controls
 └── notes/                         # Technical guides & Computer Graphics lab notes
-    ├── setupGuide.md              # Consolidated setup, PATH, Makefile, & batch architecture guide
+    ├── manualSetupGuide.md        # Consolidated manual setup, PATH, Makefile, & batch architecture guide
     ├── colorGuide.md              # OpenGL RGB color palettes & gradient interpolation guide
     └── circleGuide.md             # Circle drawing algorithms (Trig loops, Midpoint, GLSL Shaders)
 ```
 
 ---
 
-👉 For detailed manual setup instructions, technical root causes, and Makefile specifications, see **[guide.md](guide.md)**.
+## ❓ Troubleshooting Quick Reference
+
+| Issue | Cause | Solution |
+| :--- | :--- | :--- |
+| **`'g++' or 'make' is not recognized`** | Compiler or build tool missing from PATH | Run `install_opengl_admin.bat` or manually verify `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` in System PATH. Restart terminal. |
+| **`fatal error: KHR/khrplatform.h`** | GLAD unable to find platform include | Use `#include "khrplatform.h"` relative include in `glad.h` or place `khrplatform.h` in `include/`. |
+| **`glfw3.dll not found`** | Dynamic library missing from binary directory | Ensure `glfw3.dll` exists in `./build/` alongside `main.exe`. |
+| **`Failed to create GLFW window`** | Display driver lacks OpenGL 3.3 Core Profile support | Update GPU display drivers or run diagnostic check with **GLView** (RealTech VR). |
+
+👉 For full troubleshooting details, see **[guide.md](guide.md)**.
