@@ -26,6 +26,12 @@ Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_
 
 To clean up built binaries or remove PATH entries, right-click **`uninstall_opengl_admin.bat`** and select **Run as Administrator**.
 
+You can also watch this video:
+
+<a href="https://youtu.be/AXdDEYzfdxI "><img width="1488" height="837" alt="Your paragraph text" src="https://github.com/user-attachments/assets/a9f2f281-d7be-4b21-8a2f-58d0e232fb4b" />
+</a>
+
+
 ---
 
 ## ✨ Features & What's New
