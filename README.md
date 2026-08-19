@@ -92,7 +92,7 @@ g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./
 - 🛠️ **Non-Destructive PATH Registration**: Appends MSYS2 binary directories to Windows Machine environment variables using PowerShell registry access, preventing legacy `setx` string-truncation bugs.
 - 🧩 **VS Code Makefile Tools Integration**: Detects VS Code and installs `ms-vscode.makefile-tools` from local `.vsix` in `Dependencies\vscode_extensions`.
 - 🖥️ **Live GPU & OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and hidden-window context tests.
-- 🚀 **Built-in Mesa3D Software Renderer Auto-Fix**: Automatically detects legacy GPUs (e.g. Intel HD Graphics 2000/3000 / Sandy Bridge on Intel Core i3-2100) and seamlessly deploys localized **Mesa3D (llvmpipe OpenGL 4.6)** from `Dependencies\mesa3d` so `make win` runs out of the box on any hardware.
+- 🚀 **Built-in Mesa3D Software Renderer Auto-Fix**: Automatically detects legacy GPUs (e.g. Intel HD Graphics 2000/3000 / Sandy Bridge on Intel Core i3-2100), stores Mesa3D in central system storage, and transparently hooks `g++` / `make` so `make win` auto-copies the required DLLs and runs seamlessly in ANY project folder on the system.
 - 🔧 **GLAD Include Fixes**: Resolves `#include <KHR/khrplatform.h>` compiler errors out of the box using clean relative include paths.
 - 📁 **Cross-Platform Makefiles**: Ready-to-use Makefile configuration with targets for both Windows (`make win`) and Linux (`make linux`).
 

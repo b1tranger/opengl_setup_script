@@ -31,8 +31,8 @@ This technical guide documents the complete automated setup and manual configura
 * **Problem**: Console output: `Failed to create GLFW window` (Error 255 in make).
 * **Root Cause**: The system display driver lacks OpenGL 3.3 Core Profile support (common on older integrated GPUs like 2nd Gen Intel Core i3-2100 / Sandy Bridge Intel HD 2000/3000, or missing GPU drivers with Microsoft Basic Display Adapter).
 * **Fix**:
-  1. **Automated Auto-Fix**: `install_opengl_admin.bat` automatically tests OpenGL 3.3 context in Step 5 and deploys the localized **Mesa3D (llvmpipe)** software renderer from `Dependencies\mesa3d` into sample projects if the native driver fails.
-  2. **Manual Deployment**: Copy `opengl32.dll` and `libgallium_wgl.dll` from `Dependencies\mesa3d\` into your project's `build/` folder (next to `main.exe`). Windows will use CPU-based OpenGL 4.6 software rendering with full SSE4/AVX vector acceleration.
+  1. **Fully Automated Background Deployment**: `install_opengl_admin.bat` automatically tests the OpenGL 3.3 context in Step 5. If native context creation fails, it stores Mesa3D in `C:\msys64\opt\mesa3d` and installs a transparent build-tool automation hook for `g++.exe` and `make.exe`. Whenever `make win` or `g++` is executed on **any** project folder on the system, the required Mesa3D DLLs (`opengl32.dll` and `libgallium_wgl.dll`) are auto-copied to the project's `./build/` folder on the fly with zero manual copying needed.
+  2. **Manual Fallback**: Copy `opengl32.dll` and `libgallium_wgl.dll` from `Dependencies\mesa3d\` into your project's `build/` folder (next to `main.exe`). Windows will use CPU-based OpenGL 4.6 software rendering with full SSE4/AVX vector acceleration.
 
 ---
 

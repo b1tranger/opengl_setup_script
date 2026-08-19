@@ -62,6 +62,22 @@ exit /b 0
 
 :UNINSTALL_PACKAGES
 echo.
+if exist "%MSYS2_DIR%\usr\bin\g++_orig.exe" (
+    echo Restoring original g++.exe compiler binary...
+    copy /Y "%MSYS2_DIR%\usr\bin\g++_orig.exe" "%MSYS2_DIR%\usr\bin\g++.exe" >nul 2>&1
+    del /F /Q "%MSYS2_DIR%\usr\bin\g++_orig.exe" >nul 2>&1
+)
+if exist "%MSYS2_DIR%\usr\bin\make_orig.exe" (
+    echo Restoring original make.exe build tool binary...
+    copy /Y "%MSYS2_DIR%\usr\bin\make_orig.exe" "%MSYS2_DIR%\usr\bin\make.exe" >nul 2>&1
+    del /F /Q "%MSYS2_DIR%\usr\bin\make_orig.exe" >nul 2>&1
+)
+if exist "%MSYS2_DIR%\opt\mesa3d" (
+    echo Removing central Mesa3D directory: %MSYS2_DIR%\opt\mesa3d ...
+    rmdir /S /Q "%MSYS2_DIR%\opt\mesa3d" >nul 2>&1
+)
+powershell -Command "[System.Environment]::SetEnvironmentVariable('GALLIUM_DRIVER', $null, 'Machine')" >nul 2>&1
+
 if exist "%MSYS2_DIR%\usr\bin\bash.exe" (
     echo Uninstalling pacman packages base-devel and gcc...
     if exist "%MSYS2_DIR%\var\lib\pacman\db.lck" del /F /Q "%MSYS2_DIR%\var\lib\pacman\db.lck" >nul 2>&1

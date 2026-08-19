@@ -145,21 +145,49 @@ echo   [NOTICE] Native GPU driver could not create OpenGL 3.3 Core Profile.
 echo   ========================================================================
 if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
     echo   [AUTO-FIX] Localized Mesa3D Software Renderer detected in Dependencies!
-    echo   Deploying Mesa3D [OpenGL 4.6 llvmpipe] to sample projects...
+    echo   1. Installing central Mesa3D storage to "%MSYS2_DIR%\opt\mesa3d"...
+    if not exist "%MSYS2_DIR%\opt\mesa3d" mkdir "%MSYS2_DIR%\opt\mesa3d"
+    copy /Y "%LOCAL_MESA_DIR%\*.dll" "%MSYS2_DIR%\opt\mesa3d\" >nul 2>&1
+
+    echo   2. Deploying Mesa3D [OpenGL 4.6 llvmpipe] to sample projects...
     for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
         if not exist "%%D\build" mkdir "%%D\build"
         copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
     )
+
+    echo   3. Configuring automated background deployment for 'make win'...
+    if exist "%LOCAL_MESA_DIR%\mesa_wrapper.cpp" (
+        pushd "%LOCAL_MESA_DIR%"
+        g++.exe -std=c++17 -O2 mesa_wrapper.cpp -o mesa_wrapper.exe >nul 2>&1
+        popd
+        if exist "%LOCAL_MESA_DIR%\mesa_wrapper.exe" (
+            if not exist "%MSYS2_DIR%\usr\bin\g++_orig.exe" (
+                if exist "%MSYS2_DIR%\usr\bin\g++.exe" ren "%MSYS2_DIR%\usr\bin\g++.exe" "g++_orig.exe"
+            )
+            if exist "%MSYS2_DIR%\usr\bin\g++_orig.exe" (
+                copy /Y "%LOCAL_MESA_DIR%\mesa_wrapper.exe" "%MSYS2_DIR%\usr\bin\g++.exe" >nul 2>&1
+            )
+            if not exist "%MSYS2_DIR%\usr\bin\make_orig.exe" (
+                if exist "%MSYS2_DIR%\usr\bin\make.exe" ren "%MSYS2_DIR%\usr\bin\make.exe" "make_orig.exe"
+            )
+            if exist "%MSYS2_DIR%\usr\bin\make_orig.exe" (
+                copy /Y "%LOCAL_MESA_DIR%\mesa_wrapper.exe" "%MSYS2_DIR%\usr\bin\make.exe" >nul 2>&1
+            )
+            del /F /Q "%LOCAL_MESA_DIR%\mesa_wrapper.exe" >nul 2>&1
+            echo      - Build-tool automation hooks installed successfully.
+        )
+    )
+
     :: Set GALLIUM_DRIVER=llvmpipe to eliminate Zink Vulkan probe error
     powershell -Command "[System.Environment]::SetEnvironmentVariable('GALLIUM_DRIVER', 'llvmpipe', 'Machine')" >nul 2>&1
     set "GALLIUM_DRIVER=llvmpipe"
-    echo   - Retesting OpenGL context with Mesa3D software renderer...
+    echo   4. Retesting OpenGL context with Mesa3D software renderer...
     pushd "%TEST_DIR%"
     ".\build\main.exe"
     popd
     echo.
     echo   [SUCCESS] OpenGL 3.3+ is now active and verified via Mesa3D!
-    echo   Legacy hardware support enabled: 'make win' will now work smoothly.
+    echo   Legacy hardware support enabled: 'make win' will now work in ANY project folder!
 ) else (
     echo   Root Causes and Solutions:
     echo     1. Missing GPU Driver: If using Microsoft Basic Display Adapter,
@@ -281,15 +309,44 @@ echo   Deploying Mesa3D Software Renderer to Sample Projects...
 echo ============================================================
 echo.
 if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
+    echo   1. Installing central Mesa3D storage to "%MSYS2_DIR%\opt\mesa3d"...
+    if not exist "%MSYS2_DIR%\opt\mesa3d" mkdir "%MSYS2_DIR%\opt\mesa3d"
+    copy /Y "%LOCAL_MESA_DIR%\*.dll" "%MSYS2_DIR%\opt\mesa3d\" >nul 2>&1
+
+    echo   2. Deploying Mesa3D [OpenGL 4.6 llvmpipe] to sample projects...
     for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
         if not exist "%%D\build" mkdir "%%D\build"
         copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
-        echo   [COPIED] Mesa3D deployed to: %%~nxD\build
+        echo      [COPIED] Mesa3D deployed to: %%~nxD\build
     )
+
+    echo   3. Configuring automated background deployment for 'make win'...
+    if exist "%LOCAL_MESA_DIR%\mesa_wrapper.cpp" (
+        pushd "%LOCAL_MESA_DIR%"
+        g++.exe -std=c++17 -O2 mesa_wrapper.cpp -o mesa_wrapper.exe >nul 2>&1
+        popd
+        if exist "%LOCAL_MESA_DIR%\mesa_wrapper.exe" (
+            if not exist "%MSYS2_DIR%\usr\bin\g++_orig.exe" (
+                if exist "%MSYS2_DIR%\usr\bin\g++.exe" ren "%MSYS2_DIR%\usr\bin\g++.exe" "g++_orig.exe"
+            )
+            if exist "%MSYS2_DIR%\usr\bin\g++_orig.exe" (
+                copy /Y "%LOCAL_MESA_DIR%\mesa_wrapper.exe" "%MSYS2_DIR%\usr\bin\g++.exe" >nul 2>&1
+            )
+            if not exist "%MSYS2_DIR%\usr\bin\make_orig.exe" (
+                if exist "%MSYS2_DIR%\usr\bin\make.exe" ren "%MSYS2_DIR%\usr\bin\make.exe" "make_orig.exe"
+            )
+            if exist "%MSYS2_DIR%\usr\bin\make_orig.exe" (
+                copy /Y "%LOCAL_MESA_DIR%\mesa_wrapper.exe" "%MSYS2_DIR%\usr\bin\make.exe" >nul 2>&1
+            )
+            del /F /Q "%LOCAL_MESA_DIR%\mesa_wrapper.exe" >nul 2>&1
+            echo      - Build-tool automation hooks installed successfully.
+        )
+    )
+
     powershell -Command "[System.Environment]::SetEnvironmentVariable('GALLIUM_DRIVER', 'llvmpipe', 'Machine')" >nul 2>&1
     set "GALLIUM_DRIVER=llvmpipe"
     echo.
-    echo   [SUCCESS] Mesa3D software renderer (OpenGL 4.6) is ready in all sample projects.
+    echo   [SUCCESS] Mesa3D software renderer is active. 'make win' will now auto-configure in any folder!
 ) else (
     echo   [ERROR] Localized Mesa3D files not found at %LOCAL_MESA_DIR%.
 )
