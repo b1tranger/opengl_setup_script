@@ -150,6 +150,9 @@ if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
         if not exist "%%D\build" mkdir "%%D\build"
         copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
     )
+    :: Set GALLIUM_DRIVER=llvmpipe to eliminate Zink Vulkan probe error
+    powershell -Command "[System.Environment]::SetEnvironmentVariable('GALLIUM_DRIVER', 'llvmpipe', 'Machine')" >nul 2>&1
+    set "GALLIUM_DRIVER=llvmpipe"
     echo   - Retesting OpenGL context with Mesa3D software renderer...
     pushd "%TEST_DIR%"
     ".\build\main.exe"
@@ -283,6 +286,8 @@ if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
         copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
         echo   [COPIED] Mesa3D deployed to: %%~nxD\build
     )
+    powershell -Command "[System.Environment]::SetEnvironmentVariable('GALLIUM_DRIVER', 'llvmpipe', 'Machine')" >nul 2>&1
+    set "GALLIUM_DRIVER=llvmpipe"
     echo.
     echo   [SUCCESS] Mesa3D software renderer (OpenGL 4.6) is ready in all sample projects.
 ) else (
