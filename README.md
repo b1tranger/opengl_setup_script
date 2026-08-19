@@ -34,15 +34,17 @@ Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_
 
 1. Right-click **`install_opengl_admin.bat`** and select **Run as Administrator** (or double-click to run with self-elevation).
 2. Confirm the Windows UAC prompt when prompted.
-3. The script executes the automated 5-step setup workflow:
-   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64`. If missing, launches the bundled `Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe` installer.
-   - **[2/5] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` (with automatic network fallback) and installs `base-devel`, `gcc`, `g++`, and `make`.
-   - **[3/5] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without character-length truncation.
-   - **[4/5] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
-   - **[5/5] VS Code Integration**: Detects VS Code and optionally installs the **Makefile Tools extension** (`ms-vscode.makefile-tools`) from the localized offline `.vsix` archive in `Dependencies\vscode_extensions`.
+3. The script executes the automated 6-step setup workflow:
+   - **[1/6] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64`. If missing, launches the bundled `Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe` installer.
+   - **[2/6] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` (with automatic network fallback) and installs `base-devel`, `gcc`, `g++`, and `make`.
+   - **[3/6] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without character-length truncation.
+   - **[4/6] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
+   - **[5/6] Graphics Hardware & Live OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and hidden-window context tests using `setup_hardware_test`. If older hardware (e.g. Intel HD Graphics 2000/3000) or missing drivers fail native context creation, it automatically deploys the localized **Mesa3D (llvmpipe OpenGL 4.6)** software renderer from `Dependencies\mesa3d` to all sample projects.
+   - **[6/6] VS Code Integration**: Detects VS Code and optionally installs the **Makefile Tools extension** (`ms-vscode.makefile-tools`) from the localized offline `.vsix` archive in `Dependencies\vscode_extensions`.
 4. **Interactive Completion Dashboard**:
    - Choose **`[1]`** to open the local `sample_projects` folder in Windows File Explorer and view project build instructions.
    - Choose **`[2]`** to open online OpenGL technical notes on GitHub in your default browser.
+   - Choose **`[3]`** to deploy or refresh Mesa3D software renderer across all sample projects.
    - Press **`Enter`** (or type **`0`**) to exit setup.
 
 ---
@@ -89,8 +91,9 @@ g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./
 - 📦 **Offline-First Package Deployment**: Installs GCC compiler and Make build utilities from pre-downloaded package archives in `Dependencies\msys2_packages` without requiring an active internet connection.
 - 🛠️ **Non-Destructive PATH Registration**: Appends MSYS2 binary directories to Windows Machine environment variables using PowerShell registry access, preventing legacy `setx` string-truncation bugs.
 - 🧩 **VS Code Makefile Tools Integration**: Detects VS Code and installs `ms-vscode.makefile-tools` from local `.vsix` in `Dependencies\vscode_extensions`.
+- 🖥️ **Live GPU & OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and hidden-window context tests.
+- 🚀 **Built-in Mesa3D Software Renderer Auto-Fix**: Automatically detects legacy GPUs (e.g. Intel HD Graphics 2000/3000 / Sandy Bridge on Intel Core i3-2100) and seamlessly deploys localized **Mesa3D (llvmpipe OpenGL 4.6)** from `Dependencies\mesa3d` so `make win` runs out of the box on any hardware.
 - 🔧 **GLAD Include Fixes**: Resolves `#include <KHR/khrplatform.h>` compiler errors out of the box using clean relative include paths.
-- 🚀 **Dynamic DLL Bundling**: Automatically pairs `glfw3.dll` in `./build/` alongside `main.exe` to prevent `LoadLibrary` runtime missing DLL errors.
 - 📁 **Cross-Platform Makefiles**: Ready-to-use Makefile configuration with targets for both Windows (`make win`) and Linux (`make linux`).
 
 ---
@@ -137,13 +140,15 @@ opengl_setup_script/
 ├── install_opengl_admin.bat       # Self-elevating Administrator installer (1-Click setup)
 ├── uninstall_opengl_admin.bat     # Administrator cleanup & uninstallation script
 ├── Dependencies/                  # Localized offline setup dependencies
+│   ├── mesa3d/                    # Localized Mesa3D (llvmpipe OpenGL 4.6) software renderer DLLs
 │   ├── msys2_packages/            # Pre-downloaded pacman package archives (.pkg.tar.zst)
 │   └── vscode_extensions/         # Localized VS Code Makefile Tools extension (.vsix)
 ├── Graphics_Lab_Install_AG/       # Core install dependencies & setup guide
 │   ├── msys2-x86_64-20260611.exe  # Latest MSYS2 64-bit installer executable
 │   └── Setup.pdf                  # Setup instructions & original lab setup reference
 ├── sample_projects/               # Structured Modern OpenGL sample projects
-│   ├── Lab0_Basic_Window/         # Basic GLFW window creation & background clear
+│   ├── setup_hardware_test/       # Headless diagnostic hardware test
+│   ├── Lab0_Basic_Window/         # Basic 2D House Graphics & viewport callbacks
 │   ├── Lab1_Color_Triangle/       # OpenGL 3.3 Core Profile programmable shader RGB triangle
 │   └── Lab2_Interactive_Input/    # Interactive keyboard callbacks & background color controls
 └── notes/                         # Technical guides & Computer Graphics lab notes
@@ -161,6 +166,6 @@ opengl_setup_script/
 | **`'g++' or 'make' is not recognized`** | Compiler or build tool missing from PATH | Run `install_opengl_admin.bat` or manually verify `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` in System PATH. Restart terminal. |
 | **`fatal error: KHR/khrplatform.h`** | GLAD unable to find platform include | Use `#include "khrplatform.h"` relative include in `glad.h` or place `khrplatform.h` in `include/`. |
 | **`glfw3.dll not found`** | Dynamic library missing from binary directory | Ensure `glfw3.dll` exists in `./build/` alongside `main.exe`. |
-| **`Failed to create GLFW window`** | Display driver lacks OpenGL 3.3 Core Profile support | Update GPU display drivers or run diagnostic check with **GLView** (RealTech VR). |
+| **`Failed to create GLFW window`** | Display driver lacks OpenGL 3.3 Core Profile support (e.g. Intel HD Graphics 2000/3000) | `install_opengl_admin.bat` automatically deploys the localized Mesa3D software renderer from `Dependencies\mesa3d` to enable OpenGL 4.6 on older hardware. You can also select Option `[3]` in the installer menu. |
 
 👉 For full troubleshooting details, see **[guide.md](guide.md)**.

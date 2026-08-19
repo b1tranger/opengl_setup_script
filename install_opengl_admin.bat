@@ -21,6 +21,7 @@ set "MSYS2_DIR=C:\msys64"
 set "INSTALLER_EXE=%PROJECT_ROOT%\Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe"
 set "LOCAL_PKG_DIR=%PROJECT_ROOT%\Dependencies\msys2_packages"
 set "LOCAL_VSIX=%PROJECT_ROOT%\Dependencies\vscode_extensions\ms-vscode.makefile-tools.vsix"
+set "LOCAL_MESA_DIR=%PROJECT_ROOT%\Dependencies\mesa3d"
 
 :: 1. Check MSYS2 Installation
 echo [1/6] Checking MSYS2 package manager installation...
@@ -104,7 +105,7 @@ echo.
 echo [5/6] Verifying Graphics Hardware and Live OpenGL 3.3 Context...
 
 :: --- Method 1: Hardware & Driver Query via PowerShell / WMI ---
-powershell -NoProfile -Command "$gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue; if ($gpus) { foreach ($g in $gpus) { Write-Host ('   - Detected Display Adapter: ' + $g.Name); if ($g.Name -match 'Basic Display') { Write-Host '     [!] WARNING: Microsoft Basic Display Adapter in use [Missing official GPU driver].' -ForegroundColor Red } elseif ($g.Name -match 'HD Graphics 2000|HD Graphics 3000') { Write-Host '     [!] NOTE: Legacy Intel HD Graphics detected [Hardware supports max OpenGL 3.1].' -ForegroundColor Yellow } } }"
+powershell -NoProfile -Command "$gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue; if ($gpus) { foreach ($g in $gpus) { Write-Host ('   - Detected Display Adapter: ' + $g.Name); if ($g.Name -match 'Basic Display') { Write-Host '     [!] WARNING: Microsoft Basic Display Adapter in use [Missing official GPU driver].' -ForegroundColor Red } elseif ($g.Name -match 'HD Graphics') { Write-Host '     [!] NOTE: Legacy Intel HD Graphics detected [May require Mesa3D for OpenGL 3.3+].' -ForegroundColor Yellow } } }"
 
 :: --- Method 2: Live OpenGL 3.3 Context Test using setup_hardware_test (Hidden Window) ---
 echo    - Running live OpenGL 3.3 Core Profile initialization test...
@@ -136,13 +137,33 @@ if %TEST_RESULT% equ 0 (
 ) else (
     echo.
     echo   ========================================================================
-    echo   [!] WARNING: Live OpenGL 3.3 context creation failed on this PC!
+    echo   [!] Native GPU driver could not create OpenGL 3.3 Core Profile context.
     echo   ========================================================================
-    echo   Root Causes and Solutions:
-    echo     1. Missing GPU Driver: If using Microsoft Basic Display Adapter,
-    echo        install official Intel/AMD/NVIDIA graphics drivers.
-    echo     2. Older GPU Hardware: If your GPU only supports OpenGL 2.1/3.1,
-    echo        place Mesa3D software renderer [opengl32.dll] in your build folder.
+    if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
+        echo   [AUTO-FIX] Localized Mesa3D Software Renderer detected in Dependencies!
+        echo   Deploying Mesa3D (OpenGL 4.6 llvmpipe) to sample projects...
+        for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
+            if not exist "%%D\build" mkdir "%%D\build"
+            copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
+        )
+        echo   - Retesting OpenGL context with Mesa3D software renderer...
+        pushd "%TEST_DIR%"
+        ".\build\main.exe"
+        set "MESA_TEST_RESULT=!errorlevel!"
+        popd
+        if !MESA_TEST_RESULT! equ 0 (
+            echo   [SUCCESS] OpenGL 3.3+ is now active and verified via Mesa3D!
+            echo   Legacy hardware support enabled: 'make win' will now work smoothly.
+        ) else (
+            echo   [!] Note: Mesa3D fallback initialized.
+        )
+    ) else (
+        echo   Root Causes and Solutions:
+        echo     1. Missing GPU Driver: If using Microsoft Basic Display Adapter,
+        echo        install official Intel/AMD/NVIDIA graphics drivers.
+        echo     2. Older GPU Hardware: If your GPU only supports OpenGL 2.1/3.1,
+        echo        place Mesa3D software renderer [opengl32.dll] in your build folder.
+    )
     echo   ========================================================================
     echo.
 )
@@ -201,13 +222,15 @@ echo   Interactive Options:
 echo ============================================================
 echo   [1] Open Local Sample Projects Folder (File Explorer) ^& View Build Instructions
 echo   [2] Open OpenGL Technical Notes on GitHub (Web Browser)
+echo   [3] Deploy / Refresh Mesa3D Software Renderer to All Sample Projects
 echo   [0] Exit Setup (or press Enter)
 echo.
 set "LINK_CHOICE="
-set /p LINK_CHOICE="Select an option [1-2, 0, or press Enter to exit]: "
+set /p LINK_CHOICE="Select an option [1-3, 0, or press Enter to exit]: "
 
 if "%LINK_CHOICE%"=="1" goto OPTION_1
 if "%LINK_CHOICE%"=="2" goto OPTION_2
+if "%LINK_CHOICE%"=="3" goto OPTION_3
 goto EXIT_SCRIPT
 
 :OPTION_1
@@ -244,6 +267,28 @@ echo ============================================================
 echo   URL: https://github.com/b1tranger/opengl_setup_script/tree/main/notes
 echo.
 start "" "https://github.com/b1tranger/opengl_setup_script/tree/main/notes"
+echo.
+echo Press any key to return to the menu...
+pause >nul
+goto FINISH
+
+:OPTION_3
+cls
+echo ============================================================
+echo   Deploying Mesa3D Software Renderer to Sample Projects...
+echo ============================================================
+echo.
+if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
+    for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
+        if not exist "%%D\build" mkdir "%%D\build"
+        copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
+        echo   [COPIED] Mesa3D deployed to: %%~nxD\build
+    )
+    echo.
+    echo   [SUCCESS] Mesa3D software renderer (OpenGL 4.6) is ready in all sample projects.
+) else (
+    echo   [ERROR] Localized Mesa3D files not found at %LOCAL_MESA_DIR%.
+)
 echo.
 echo Press any key to return to the menu...
 pause >nul

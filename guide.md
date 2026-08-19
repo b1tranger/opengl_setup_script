@@ -28,23 +28,32 @@ This technical guide documents the complete automated setup and manual configura
 * **Fix**: Automatically deploy `glfw3.dll` into `./build/` alongside `main.exe`.
 
 ### 5. GLFW Window Creation Failure (`OpenGL 3.3 unsupported`)
-* **Problem**: Console output: `Failed to create GLFW window`.
-* **Root Cause**: The system display driver lacks OpenGL 3.3 Core Profile support.
-* **Fix**: Diagnostic check with **GLView** (RealTech VR) to verify GPU driver capabilities.
+* **Problem**: Console output: `Failed to create GLFW window` (Error 255 in make).
+* **Root Cause**: The system display driver lacks OpenGL 3.3 Core Profile support (common on older integrated GPUs like 2nd Gen Intel Core i3-2100 / Sandy Bridge Intel HD 2000/3000, or missing GPU drivers with Microsoft Basic Display Adapter).
+* **Fix**:
+  1. **Automated Auto-Fix**: `install_opengl_admin.bat` automatically tests OpenGL 3.3 context in Step 5 and deploys the localized **Mesa3D (llvmpipe)** software renderer from `Dependencies\mesa3d` into sample projects if the native driver fails.
+  2. **Manual Deployment**: Copy `opengl32.dll` and `libgallium_wgl.dll` from `Dependencies\mesa3d\` into your project's `build/` folder (next to `main.exe`). Windows will use CPU-based OpenGL 4.6 software rendering with full SSE4/AVX vector acceleration.
 
 ---
 
 ## 3. Automated 1-Click Setup (`install_opengl_admin.bat`)
 
-To automatically install MSYS2, package dependencies, and update PATH environment variables:
+To automatically install MSYS2, package dependencies, verify hardware capabilities, and update PATH environment variables:
 
-1. Right-click **`install_opengl_admin.bat`** and select **Run as administrator**.
+1. Right-click **`install_opengl_admin.bat`** and select **Run as administrator** (or double-click to self-elevate).
 2. Click **Yes** on the Windows UAC elevation prompt.
-3. The script will:
-   - Check for MSYS2 at `C:\msys64` (installs `msys2-x86_64-20260611.exe` if missing).
-   - Execute `pacman -Sy --noconfirm base-devel gcc` to install `g++` and `make`.
-   - Update System `PATH` with `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin`.
-   - Option to automatically build and run reference `Graphics_Lab_Install_AG/Lab0` (`make win`).
+3. The script executes the automated 6-step setup workflow:
+   - **[1/6] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64` (installs `msys2-x86_64-20260611.exe` if missing).
+   - **[2/6] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` and installs `base-devel`, `gcc`, `g++`, and `make`.
+   - **[3/6] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without string-length truncation.
+   - **[4/6] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
+   - **[5/6] Graphics Hardware & Live OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and hidden-window context tests using `setup_hardware_test`. If older hardware (e.g. Intel HD Graphics 2000/3000) or missing drivers fail native context creation, it automatically deploys the localized **Mesa3D (llvmpipe OpenGL 4.6)** software renderer from `Dependencies\mesa3d` to all sample projects.
+   - **[6/6] VS Code Integration**: Detects VS Code and optionally installs the **Makefile Tools extension** (`ms-vscode.makefile-tools`) from the localized offline `.vsix` archive in `Dependencies\vscode_extensions`.
+4. **Interactive Completion Dashboard**:
+   - **`[1]`** Open local `sample_projects` folder in Windows File Explorer and view build instructions.
+   - **`[2]`** Open online OpenGL technical notes on GitHub in your default browser.
+   - **`[3]`** Deploy / Refresh Mesa3D software renderer across all sample projects.
+   - **`[0]`** Exit setup (or press Enter).
 
 ### Uninstallation & Cleanup (`uninstall_opengl_admin.bat`):
 To clean up compiled binaries, uninstall packages, or completely remove MSYS2:
@@ -60,7 +69,7 @@ To clean up compiled binaries, uninstall packages, or completely remove MSYS2:
 ## 4. How to Build & Run OpenGL Projects
 
 ### Using Makefile (Recommended)
-Open **Command Prompt (CMD)**, **PowerShell**, or **VS Code Terminal**, navigate to any lab folder (e.g. `sample_projects/Lab0_Basic_Window_test` or `sample_projects/Lab1_Color_Triangle`), and execute:
+Open **Command Prompt (CMD)**, **PowerShell**, or **VS Code Terminal**, navigate to any lab folder (e.g. `sample_projects/Lab0_Basic_Window` or `sample_projects/Lab1_Color_Triangle`), and execute:
 
 ```bash
 # Windows Command Prompt (CMD) or PowerShell
