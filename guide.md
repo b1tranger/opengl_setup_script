@@ -60,7 +60,7 @@ To clean up compiled binaries, uninstall packages, or completely remove MSYS2:
 ## 4. How to Build & Run OpenGL Projects
 
 ### Using Makefile (Recommended)
-Open **Command Prompt (CMD)**, **PowerShell**, or **VS Code Terminal**, navigate to any lab folder (e.g. `sample_projects/Lab0_Basic_Window` or `sample_projects/Lab1_Color_Triangle`), and execute:
+Open **Command Prompt (CMD)**, **PowerShell**, or **VS Code Terminal**, navigate to any lab folder (e.g. `sample_projects/Lab0_Basic_Window_test` or `sample_projects/Lab1_Color_Triangle`), and execute:
 
 ```bash
 # Windows Command Prompt (CMD) or PowerShell
@@ -80,6 +80,7 @@ g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./
 
 ## 5. Sample Projects Included
 
-1. **`Lab0_Basic_Window`**: Basic GLFW window creation, viewport callback, GLAD initialization, and buffer clearing.
-2. **`Lab1_Color_Triangle`**: OpenGL 3.3 Core Profile programmable shader pipeline, VBO/VAO setup, shader compilation, and uniform color manipulation.
-3. **`Lab2_Interactive_Input`**: Keyboard input callbacks (`ESC` to exit, `R`/`G`/`B` to tweak background RGB, `SPACE` to reset).
+1. **`setup_hardware_test`**: Headless/hidden window diagnostic test for GLFW initialization, OpenGL 3.3 Core Profile context creation, and GLAD loading.
+2. **`Lab0_Basic_Window`**: Basic 2D House Graphics (Blue Roof, Yellow House Body, Brown Door, Cyan Windows), viewport callbacks, and buffer clearing.
+3. **`Lab1_Color_Triangle`**: OpenGL 3.3 Core Profile programmable shader pipeline, VBO/VAO setup, shader compilation, and uniform color manipulation.
+4. **`Lab2_Interactive_Input`**: Keyboard input callbacks (`ESC` to exit, `R`/`G`/`B` to tweak background RGB, `SPACE` to reset).

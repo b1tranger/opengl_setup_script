@@ -99,7 +99,8 @@ g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./
 
 | Project Folder | Description |
 | :--- | :--- |
-| **`sample_projects/Lab0_Basic_Window`** | Basic GLFW window initialization, viewport resize callbacks, GLAD loading, and frame buffer clearing. |
+| **`sample_projects/setup_hardware_test`** | OpenGL 3.3 Core Profile environment diagnostic test (headless/hidden window verification, GLAD loading, GPU info logging). |
+| **`sample_projects/Lab0_Basic_Window`** | Basic 2D House Graphics (Blue Roof, Yellow House Body, Brown Door, Cyan Windows, viewport callbacks, GLAD loading). |
 | **`sample_projects/Lab1_Color_Triangle`** | Modern OpenGL 3.3 Core Profile pipeline, VAO/VBO vertex attribute buffers, GLSL vertex & fragment shaders, RGB interpolation. |
 | **`sample_projects/Lab2_Interactive_Input`** | Real-time keyboard event callbacks (`ESC` to exit, `R`/`G`/`B` to manipulate background color channels, `SPACE` to reset). |
 

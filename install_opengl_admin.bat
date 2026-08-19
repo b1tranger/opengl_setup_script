@@ -23,7 +23,7 @@ set "LOCAL_PKG_DIR=%PROJECT_ROOT%\Dependencies\msys2_packages"
 set "LOCAL_VSIX=%PROJECT_ROOT%\Dependencies\vscode_extensions\ms-vscode.makefile-tools.vsix"
 
 :: 1. Check MSYS2 Installation
-echo [1/5] Checking MSYS2 package manager installation...
+echo [1/6] Checking MSYS2 package manager installation...
 if exist "%MSYS2_DIR%\usr\bin\bash.exe" goto MSYS_OK
 
 echo [NOT FOUND] MSYS2 is not installed at "%MSYS2_DIR%".
@@ -58,7 +58,7 @@ if exist "%MSYS2_DIR%\var\lib\pacman\db.lck" (
 
 :: 2. Localize MSYS2 Package Installation (Offline-First)
 echo.
-echo [2/5] Installing C++ compiler (gcc/g++) and build tools (make)...
+echo [2/6] Installing C++ compiler (gcc/g++) and build tools (make)...
 
 if not exist "%MSYS2_DIR%\var\cache\pacman\pkg" mkdir "%MSYS2_DIR%\var\cache\pacman\pkg"
 
@@ -76,21 +76,15 @@ echo Installing packages via MSYS2 pacman...
 
 :: 3. Configure System Environment Variables (PATH)
 echo.
-echo [3/5] Registering MSYS2 binaries in System Environment PATH...
-powershell -Command ^
-    "$sysPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine'); " ^
-    "$usrBin = 'C:\msys64\usr\bin'; $mingwBin = 'C:\msys64\mingw64\bin'; " ^
-    "$newPath = $sysPath; " ^
-    "if (-not ($sysPath -split ';' -contains $usrBin)) { $newPath = $usrBin + ';' + $newPath }; " ^
-    "if (-not ($sysPath -split ';' -contains $mingwBin)) { $newPath = $mingwBin + ';' + $newPath }; " ^
-    "if ($newPath -ne $sysPath) { [System.Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine'); Write-Host '[SUCCESS] System PATH updated.' } else { Write-Host '[OK] MSYS2 paths already present in System PATH.' }"
+echo [3/6] Registering MSYS2 binaries in System Environment PATH...
+powershell -Command "$sysPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine'); $usrBin = 'C:\msys64\usr\bin'; $mingwBin = 'C:\msys64\mingw64\bin'; $newPath = $sysPath; if (-not ($sysPath -split ';' -contains $usrBin)) { $newPath = $usrBin + ';' + $newPath }; if (-not ($sysPath -split ';' -contains $mingwBin)) { $newPath = $mingwBin + ';' + $newPath }; if ($newPath -ne $sysPath) { [System.Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine'); Write-Host '[SUCCESS] System PATH updated.' } else { Write-Host '[OK] MSYS2 paths already present in System PATH.' }"
 
 :: Refresh local script environment PATH for current session
 set "PATH=%MSYS2_DIR%\usr\bin;%MSYS2_DIR%\mingw64\bin;%PATH%"
 
 :: 4. Verify g++ and make executables
 echo.
-echo [4/5] Verifying compiler and build tool availability...
+echo [4/6] Verifying compiler and build tool availability...
 where g++ >nul 2>&1
 if %errorLevel% equ 0 (
     echo   - Compiler g++.exe is accessible in PATH.
@@ -105,9 +99,58 @@ if %errorLevel% equ 0 (
     echo   [!] Warning: make.exe not immediately visible in session PATH. Restart terminal after setup.
 )
 
-:: 5. VS Code Makefile Tools Extension Localization
+:: 5. Graphics Hardware & Live OpenGL 3.3 Diagnostic Verification
 echo.
-echo [5/5] Checking VS Code editor integration...
+echo [5/6] Verifying Graphics Hardware and Live OpenGL 3.3 Context...
+
+:: --- Method 1: Hardware & Driver Query via PowerShell / WMI ---
+powershell -NoProfile -Command "$gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue; if ($gpus) { foreach ($g in $gpus) { Write-Host ('   - Detected Display Adapter: ' + $g.Name); if ($g.Name -match 'Basic Display') { Write-Host '     [!] WARNING: Microsoft Basic Display Adapter in use [Missing official GPU driver].' -ForegroundColor Red } elseif ($g.Name -match 'HD Graphics 2000|HD Graphics 3000') { Write-Host '     [!] NOTE: Legacy Intel HD Graphics detected [Hardware supports max OpenGL 3.1].' -ForegroundColor Yellow } } }"
+
+:: --- Method 2: Live OpenGL 3.3 Context Test using setup_hardware_test (Hidden Window) ---
+echo    - Running live OpenGL 3.3 Core Profile initialization test...
+set "TEST_DIR=%PROJECT_ROOT%\sample_projects\setup_hardware_test"
+set "TEST_EXE=%TEST_DIR%\build\main.exe"
+
+if not exist "%TEST_DIR%" (
+    echo   [INFO] Diagnostic test directory not found.
+    goto STEP_6
+)
+
+pushd "%TEST_DIR%"
+echo    - Compiling diagnostic test binary...
+if not exist "build" mkdir "build"
+g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./build/main.exe -Llib -lglfw3 -lopengl32 -lgdi32 >nul 2>&1
+
+if not exist "%TEST_EXE%" (
+    echo   [!] Warning: Could not build diagnostic test binary.
+    popd
+    goto STEP_6
+)
+
+".\build\main.exe"
+set "TEST_RESULT=%errorlevel%"
+popd
+
+if %TEST_RESULT% equ 0 (
+    echo   [OK] Live OpenGL 3.3 Core Profile context verified successfully!
+) else (
+    echo.
+    echo   ========================================================================
+    echo   [!] WARNING: Live OpenGL 3.3 context creation failed on this PC!
+    echo   ========================================================================
+    echo   Root Causes and Solutions:
+    echo     1. Missing GPU Driver: If using Microsoft Basic Display Adapter,
+    echo        install official Intel/AMD/NVIDIA graphics drivers.
+    echo     2. Older GPU Hardware: If your GPU only supports OpenGL 2.1/3.1,
+    echo        place Mesa3D software renderer [opengl32.dll] in your build folder.
+    echo   ========================================================================
+    echo.
+)
+
+:STEP_6
+:: 6. VS Code Makefile Tools Extension Localization
+echo.
+echo [6/6] Checking VS Code editor integration...
 set "VSC_CMD="
 where code >nul 2>&1 && set "VSC_CMD=code"
 if not defined VSC_CMD if exist "%LocalAppData%\Programs\Microsoft VS Code\bin\code.cmd" set "VSC_CMD=%LocalAppData%\Programs\Microsoft VS Code\bin\code.cmd"
@@ -182,7 +225,7 @@ echo ============================================================
 echo.
 echo   Using Makefile (Recommended):
 echo   Open Command Prompt (CMD), PowerShell, or VS Code Terminal,
-echo   navigate to any lab folder (e.g. sample_projects\Lab0_Basic_Window),
+echo   navigate to any lab folder (e.g. sample_projects\Lab1_Color_Triangle),
 echo   and execute:
 echo.
 echo       make win
