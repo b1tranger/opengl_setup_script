@@ -105,7 +105,7 @@ echo.
 echo [5/6] Verifying Graphics Hardware and Live OpenGL 3.3 Context...
 
 :: --- Method 1: Hardware & Driver Query via PowerShell / WMI ---
-powershell -NoProfile -Command "$gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue; if ($gpus) { foreach ($g in $gpus) { Write-Host ('   - Detected Display Adapter: ' + $g.Name); if ($g.Name -match 'Basic Display') { Write-Host '     [!] WARNING: Microsoft Basic Display Adapter in use [Missing official GPU driver].' -ForegroundColor Red } elseif ($g.Name -match 'HD Graphics') { Write-Host '     [!] NOTE: Legacy Intel HD Graphics detected [May require Mesa3D for OpenGL 3.3+].' -ForegroundColor Yellow } } }"
+powershell -NoProfile -Command "$gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue; if ($gpus) { foreach ($g in $gpus) { Write-Host ('   - Detected Display Adapter: ' + $g.Name); if ($g.Name -match 'Basic Display') { Write-Host '     [WARNING] Microsoft Basic Display Adapter in use [Missing official GPU driver].' -ForegroundColor Red } elseif ($g.Name -match 'HD Graphics') { Write-Host '     [NOTE] Legacy Intel HD Graphics detected [May require Mesa3D for OpenGL 3.3+].' -ForegroundColor Yellow } } }"
 
 :: --- Method 2: Live OpenGL 3.3 Context Test using setup_hardware_test (Hidden Window) ---
 echo    - Running live OpenGL 3.3 Core Profile initialization test...
@@ -123,50 +123,49 @@ if not exist "build" mkdir "build"
 g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./build/main.exe -Llib -lglfw3 -lopengl32 -lgdi32 >nul 2>&1
 
 if not exist "%TEST_EXE%" (
-    echo   [!] Warning: Could not build diagnostic test binary.
+    echo   [Warning] Could not build diagnostic test binary.
     popd
     goto STEP_6
 )
 
-".\build\main.exe"
+".\build\main.exe" >nul 2>&1
 set "TEST_RESULT=%errorlevel%"
 popd
 
-if %TEST_RESULT% equ 0 (
-    echo   [OK] Live OpenGL 3.3 Core Profile context verified successfully!
-) else (
-    echo.
-    echo   ========================================================================
-    echo   [!] Native GPU driver could not create OpenGL 3.3 Core Profile context.
-    echo   ========================================================================
-    if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
-        echo   [AUTO-FIX] Localized Mesa3D Software Renderer detected in Dependencies!
-        echo   Deploying Mesa3D (OpenGL 4.6 llvmpipe) to sample projects...
-        for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
-            if not exist "%%D\build" mkdir "%%D\build"
-            copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
-        )
-        echo   - Retesting OpenGL context with Mesa3D software renderer...
-        pushd "%TEST_DIR%"
-        ".\build\main.exe"
-        set "MESA_TEST_RESULT=!errorlevel!"
-        popd
-        if !MESA_TEST_RESULT! equ 0 (
-            echo   [SUCCESS] OpenGL 3.3+ is now active and verified via Mesa3D!
-            echo   Legacy hardware support enabled: 'make win' will now work smoothly.
-        ) else (
-            echo   [!] Note: Mesa3D fallback initialized.
-        )
-    ) else (
-        echo   Root Causes and Solutions:
-        echo     1. Missing GPU Driver: If using Microsoft Basic Display Adapter,
-        echo        install official Intel/AMD/NVIDIA graphics drivers.
-        echo     2. Older GPU Hardware: If your GPU only supports OpenGL 2.1/3.1,
-        echo        place Mesa3D software renderer [opengl32.dll] in your build folder.
-    )
-    echo   ========================================================================
-    echo.
+if "%TEST_RESULT%"=="0" (
+    pushd "%TEST_DIR%"
+    ".\build\main.exe"
+    popd
+    goto STEP_6
 )
+
+echo.
+echo   ========================================================================
+echo   [NOTICE] Native GPU driver could not create OpenGL 3.3 Core Profile.
+echo   ========================================================================
+if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
+    echo   [AUTO-FIX] Localized Mesa3D Software Renderer detected in Dependencies!
+    echo   Deploying Mesa3D [OpenGL 4.6 llvmpipe] to sample projects...
+    for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
+        if not exist "%%D\build" mkdir "%%D\build"
+        copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
+    )
+    echo   - Retesting OpenGL context with Mesa3D software renderer...
+    pushd "%TEST_DIR%"
+    ".\build\main.exe"
+    popd
+    echo.
+    echo   [SUCCESS] OpenGL 3.3+ is now active and verified via Mesa3D!
+    echo   Legacy hardware support enabled: 'make win' will now work smoothly.
+) else (
+    echo   Root Causes and Solutions:
+    echo     1. Missing GPU Driver: If using Microsoft Basic Display Adapter,
+    echo        install official Intel/AMD/NVIDIA graphics drivers.
+    echo     2. Older GPU Hardware: If your GPU only supports OpenGL 2.1/3.1,
+    echo        place Mesa3D software renderer [opengl32.dll] in your build folder.
+)
+echo   ========================================================================
+echo.
 
 :STEP_6
 :: 6. VS Code Makefile Tools Extension Localization
