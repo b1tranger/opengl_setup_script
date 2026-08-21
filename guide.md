@@ -42,18 +42,34 @@ To automatically install MSYS2, package dependencies, verify hardware capabiliti
 
 1. Right-click **`install_opengl_admin.bat`** and select **Run as administrator** (or double-click to self-elevate).
 2. Click **Yes** on the Windows UAC elevation prompt.
-3. The script executes the automated 6-step setup workflow:
-   - **[1/6] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64` (installs `msys2-x86_64-20260611.exe` if missing).
-   - **[2/6] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` and installs `base-devel`, `gcc`, `g++`, and `make`.
-   - **[3/6] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without string-length truncation.
-   - **[4/6] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
-   - **[5/6] Graphics Hardware & Live OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and hidden-window context tests using `setup_hardware_test`. If older hardware (e.g. Intel HD Graphics 2000/3000) or missing drivers fail native context creation, it automatically deploys the localized **Mesa3D (llvmpipe OpenGL 4.6)** software renderer from `Dependencies\mesa3d` to all sample projects.
-   - **[6/6] VS Code Integration**: Detects VS Code and optionally installs the **Makefile Tools extension** (`ms-vscode.makefile-tools`) from the localized offline `.vsix` archive in `Dependencies\vscode_extensions`.
+3. The script executes the automated 5-step setup workflow:
+   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64` (installs `msys2-x86_64-20260611.exe` if missing).
+   - **[2/5] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` and installs `base-devel`, `gcc`, `g++`, and `make`.
+   - **[3/5] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without string-length truncation.
+   - **[4/5] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
+   - **[5/5] Graphics Hardware & Live OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and headless context tests using `setup_hardware_test`. If older hardware or missing drivers fail native context creation, it automatically deploys the localized **Mesa3D (llvmpipe OpenGL 4.6)** software renderer from `Dependencies\mesa3d`.
 4. **Interactive Completion Dashboard**:
-   - **`[1]`** Open local `sample_projects` folder in Windows File Explorer and view build instructions.
-   - **`[2]`** Open online OpenGL technical notes on GitHub in your default browser.
-   - **`[3]`** Deploy / Refresh Mesa3D software renderer across all sample projects.
+   - **`[1]`** Create a New Custom Project (Runs `PROJECTS\create_project.bat`).
+   - **`[2]`** Open local `sample_projects` folder in Windows File Explorer and view build instructions.
+   - **`[3]`** Open online OpenGL technical notes on GitHub in your default browser.
+   - **`[4]`** Deploy / Refresh Mesa3D software renderer across all sample projects and custom projects.
    - **`[0]`** Exit setup (or press Enter).
+
+### Creating New Projects (`PROJECTS\create_project.bat`):
+To scaffold a new custom OpenGL project with full boilerplate, libraries, and build scripts:
+1. Double-click **`PROJECTS\create_project.bat`** (no Administrator privileges required) or run:
+   ```cmd
+   create_project.bat "Lab3_Lighting"
+   ```
+2. The script will:
+   - Scaffold the complete project directory structure (`src/`, `include/`, `lib/`, `build/`).
+   - Copy required headers, GLAD loader, and link libraries.
+   - Automatically open the new project folder in **Windows File Explorer**.
+   - Automatically launch a **Command Prompt (CMD)** window inside the new folder.
+3. In the opened CMD window, simply type:
+   ```cmd
+   make win
+   ```
 
 ### Uninstallation & Cleanup (`uninstall_opengl_admin.bat`):
 To clean up compiled binaries, uninstall packages, or completely remove MSYS2:

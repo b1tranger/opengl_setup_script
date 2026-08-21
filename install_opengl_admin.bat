@@ -18,13 +18,13 @@ echo ============================================================
 echo.
 
 set "MSYS2_DIR=C:\msys64"
-set "INSTALLER_EXE=%PROJECT_ROOT%\Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe"
+set "INSTALLER_EXE=%PROJECT_ROOT%\Dependencies\Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe"
 set "LOCAL_PKG_DIR=%PROJECT_ROOT%\Dependencies\msys2_packages"
-set "LOCAL_VSIX=%PROJECT_ROOT%\Dependencies\vscode_extensions\ms-vscode.makefile-tools.vsix"
 set "LOCAL_MESA_DIR=%PROJECT_ROOT%\Dependencies\mesa3d"
+set "GALLIUM_DRIVER=llvmpipe"
 
 :: 1. Check MSYS2 Installation
-echo [1/6] Checking MSYS2 package manager installation...
+echo [1/5] Checking MSYS2 package manager installation...
 if exist "%MSYS2_DIR%\usr\bin\bash.exe" goto MSYS_OK
 
 echo [NOT FOUND] MSYS2 is not installed at "%MSYS2_DIR%".
@@ -59,7 +59,7 @@ if exist "%MSYS2_DIR%\var\lib\pacman\db.lck" (
 
 :: 2. Localize MSYS2 Package Installation (Offline-First)
 echo.
-echo [2/6] Installing C++ compiler (gcc/g++) and build tools (make)...
+echo [2/5] Installing C++ compiler (gcc/g++) and build tools (make)...
 
 if not exist "%MSYS2_DIR%\var\cache\pacman\pkg" mkdir "%MSYS2_DIR%\var\cache\pacman\pkg"
 
@@ -77,7 +77,7 @@ echo Installing packages via MSYS2 pacman...
 
 :: 3. Configure System Environment Variables (PATH)
 echo.
-echo [3/6] Registering MSYS2 binaries in System Environment PATH...
+echo [3/5] Registering MSYS2 binaries in System Environment PATH...
 powershell -Command "$sysPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine'); $usrBin = 'C:\msys64\usr\bin'; $mingwBin = 'C:\msys64\mingw64\bin'; $newPath = $sysPath; if (-not ($sysPath -split ';' -contains $usrBin)) { $newPath = $usrBin + ';' + $newPath }; if (-not ($sysPath -split ';' -contains $mingwBin)) { $newPath = $mingwBin + ';' + $newPath }; if ($newPath -ne $sysPath) { [System.Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine'); Write-Host '[SUCCESS] System PATH updated.' } else { Write-Host '[OK] MSYS2 paths already present in System PATH.' }"
 
 :: Refresh local script environment PATH for current session
@@ -85,7 +85,7 @@ set "PATH=%MSYS2_DIR%\usr\bin;%MSYS2_DIR%\mingw64\bin;%PATH%"
 
 :: 4. Verify g++ and make executables
 echo.
-echo [4/6] Verifying compiler and build tool availability...
+echo [4/5] Verifying compiler and build tool availability...
 where g++ >nul 2>&1
 if %errorLevel% equ 0 (
     echo   - Compiler g++.exe is accessible in PATH.
@@ -102,7 +102,7 @@ if %errorLevel% equ 0 (
 
 :: 5. Graphics Hardware & Live OpenGL 3.3 Diagnostic Verification
 echo.
-echo [5/6] Verifying Graphics Hardware and Live OpenGL 3.3 Context...
+echo [5/5] Verifying Graphics Hardware and Live OpenGL 3.3 Context...
 
 :: --- Method 1: Hardware & Driver Query via PowerShell / WMI ---
 powershell -NoProfile -Command "$gpus = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue; if ($gpus) { foreach ($g in $gpus) { Write-Host ('   - Detected Display Adapter: ' + $g.Name); if ($g.Name -match 'Basic Display') { Write-Host '     [WARNING] Microsoft Basic Display Adapter in use [Missing official GPU driver].' -ForegroundColor Red } elseif ($g.Name -match 'HD Graphics') { Write-Host '     [NOTE] Legacy Intel HD Graphics detected [May require Mesa3D for OpenGL 3.3+].' -ForegroundColor Yellow } } }"
@@ -114,20 +114,27 @@ set "TEST_EXE=%TEST_DIR%\build\main.exe"
 
 if not exist "%TEST_DIR%" (
     echo   [INFO] Diagnostic test directory not found.
-    goto STEP_6
+    goto SUCCESS_SETUP
 )
 
 pushd "%TEST_DIR%"
 echo    - Compiling diagnostic test binary...
 if not exist "build" mkdir "build"
+
+:: Ensure clean test build directory with only glfw3.dll for initial hardware probe
+if exist "build\opengl32.dll" del /F /Q "build\opengl32.dll" >nul 2>&1
+if exist "build\libgallium_wgl.dll" del /F /Q "build\libgallium_wgl.dll" >nul 2>&1
+if exist "lib\glfw3.dll" copy /Y "lib\glfw3.dll" "build\glfw3.dll" >nul 2>&1
+
 g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./build/main.exe -Llib -lglfw3 -lopengl32 -lgdi32 >nul 2>&1
 
 if not exist "%TEST_EXE%" (
     echo   [Warning] Could not build diagnostic test binary.
     popd
-    goto STEP_6
+    goto SUCCESS_SETUP
 )
 
+:: Run test binary
 ".\build\main.exe" >nul 2>&1
 set "TEST_RESULT=%errorlevel%"
 popd
@@ -136,7 +143,17 @@ if "%TEST_RESULT%"=="0" (
     pushd "%TEST_DIR%"
     ".\build\main.exe"
     popd
-    goto STEP_6
+
+    :: If previously wrapped, restore pure native compiler & make binaries
+    if exist "%MSYS2_DIR%\usr\bin\g++_orig.exe" (
+        copy /Y "%MSYS2_DIR%\usr\bin\g++_orig.exe" "%MSYS2_DIR%\usr\bin\g++.exe" >nul 2>&1
+        del /F /Q "%MSYS2_DIR%\usr\bin\g++_orig.exe" >nul 2>&1
+    )
+    if exist "%MSYS2_DIR%\usr\bin\make_orig.exe" (
+        copy /Y "%MSYS2_DIR%\usr\bin\make_orig.exe" "%MSYS2_DIR%\usr\bin\make.exe" >nul 2>&1
+        del /F /Q "%MSYS2_DIR%\usr\bin\make_orig.exe" >nul 2>&1
+    )
+    goto SUCCESS_SETUP
 )
 
 echo.
@@ -153,6 +170,13 @@ if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
     for /d %%D in ("%PROJECT_ROOT%\sample_projects\*") do (
         if not exist "%%D\build" mkdir "%%D\build"
         copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
+    )
+
+    if exist "%PROJECT_ROOT%\PROJECTS" (
+        for /d %%D in ("%PROJECT_ROOT%\PROJECTS\*") do (
+            if not exist "%%D\build" mkdir "%%D\build"
+            copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
+        )
     )
 
     echo   3. Configuring automated background deployment for 'make win'...
@@ -183,6 +207,7 @@ if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
     set "GALLIUM_DRIVER=llvmpipe"
     echo   4. Retesting OpenGL context with Mesa3D software renderer...
     pushd "%TEST_DIR%"
+    copy /Y "%LOCAL_MESA_DIR%\*.dll" "build\" >nul 2>&1
     ".\build\main.exe"
     popd
     echo.
@@ -198,32 +223,7 @@ if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
 echo   ========================================================================
 echo.
 
-:STEP_6
-:: 6. VS Code Makefile Tools Extension Localization
-echo.
-echo [6/6] Checking VS Code editor integration...
-set "VSC_CMD="
-where code >nul 2>&1 && set "VSC_CMD=code"
-if not defined VSC_CMD if exist "%LocalAppData%\Programs\Microsoft VS Code\bin\code.cmd" set "VSC_CMD=%LocalAppData%\Programs\Microsoft VS Code\bin\code.cmd"
-if not defined VSC_CMD if exist "C:\Program Files\Microsoft VS Code\bin\code.cmd" set "VSC_CMD=C:\Program Files\Microsoft VS Code\bin\code.cmd"
-if not defined VSC_CMD if exist "%ProgramFiles(x86)%\Microsoft VS Code\bin\code.cmd" set "VSC_CMD=%ProgramFiles(x86)%\Microsoft VS Code\bin\code.cmd"
-
-if defined VSC_CMD (
-    echo [FOUND] VS Code editor detected on this computer.
-    set /p INSTALL_VSC="Would you like to install the VS Code Makefile Tools extension (ms-vscode.makefile-tools)? [Y/N]: "
-    if /i "!INSTALL_VSC!"=="Y" (
-        if exist "%LOCAL_VSIX%" (
-            echo Installing localized Makefile Tools extension from Dependencies...
-            call "!VSC_CMD!" --install-extension "%LOCAL_VSIX%" --force
-        ) else (
-            echo [NETWORK FALLBACK] Local .vsix file not found. Installing from extension marketplace...
-            call "!VSC_CMD!" --install-extension ms-vscode.makefile-tools
-        )
-    )
-) else (
-    echo [INFO] VS Code is not installed on this system. Skipping extension setup.
-)
-
+:SUCCESS_SETUP
 echo.
 echo ============================================================
 echo   SUCCESS! OpenGL C++ Build Environment configured!
@@ -238,32 +238,52 @@ echo ============================================================
 echo.
 echo Useful Links ^& Resources:
 echo.
-echo [1] Sample Projects (GitHub Repository):
-echo     https://github.com/b1tranger/opengl_setup_script/tree/main/sample_projects
+echo [1] Create New Projects:
+echo     %PROJECT_ROOT%\PROJECTS\create_project.bat
 echo.
 echo [2] Sample Projects (Local Directory):
 echo     %PROJECT_ROOT%\sample_projects
 echo.
-echo [3] OpenGL Technical Notes:
-echo     https://github.com/b1tranger/opengl_setup_script/tree/main/notes
+echo [3] Sample Projects (GitHub Repository):
+echo     https://github.com/b1tranger/opengl_setup_script/tree/main/sample_projects
+echo.
+echo [4] OpenGL Technical Notes:
+echo     https://github.com/b1tranger/opengl_setup_script/tree/main/doc/notes
 echo.
 echo ============================================================
 echo   Interactive Options:
 echo ============================================================
-echo   [1] Open Local Sample Projects Folder (File Explorer) ^& View Build Instructions
-echo   [2] Open OpenGL Technical Notes on GitHub (Web Browser)
-echo   [3] Deploy / Refresh Mesa3D Software Renderer to All Sample Projects
+echo   [1] Create a New Custom Project (Run PROJECTS\create_project.bat)
+echo   [2] Open Local Sample Projects Folder (File Explorer) ^& View Build Instructions
+echo   [3] Open OpenGL Technical Notes on GitHub (Web Browser)
+echo   [4] Deploy / Refresh Mesa3D Software Renderer to All Projects
 echo   [0] Exit Setup (or press Enter)
 echo.
 set "LINK_CHOICE="
-set /p LINK_CHOICE="Select an option [1-3, 0, or press Enter to exit]: "
+set /p LINK_CHOICE="Select an option [1-4, 0, or press Enter to exit]: "
 
 if "%LINK_CHOICE%"=="1" goto OPTION_1
 if "%LINK_CHOICE%"=="2" goto OPTION_2
 if "%LINK_CHOICE%"=="3" goto OPTION_3
+if "%LINK_CHOICE%"=="4" goto OPTION_4
 goto EXIT_SCRIPT
 
 :OPTION_1
+cls
+echo ============================================================
+echo   Launching Modern OpenGL Project Generator...
+echo ============================================================
+echo.
+if not exist "%PROJECT_ROOT%\PROJECTS" mkdir "%PROJECT_ROOT%\PROJECTS"
+if exist "%PROJECT_ROOT%\PROJECTS\create_project.bat" (
+    call "%PROJECT_ROOT%\PROJECTS\create_project.bat"
+) else (
+    echo [ERROR] create_project.bat not found in %PROJECT_ROOT%\PROJECTS.
+    pause
+)
+goto FINISH
+
+:OPTION_2
 cls
 echo ============================================================
 echo   Opening Local Sample Projects in File Explorer...
@@ -278,8 +298,8 @@ echo ============================================================
 echo.
 echo   Using Makefile (Recommended):
 echo   Open Command Prompt (CMD), PowerShell, or VS Code Terminal,
-echo   navigate to any lab folder (e.g. sample_projects\Lab1_Color_Triangle),
-echo   and execute:
+echo   navigate to any lab folder (e.g. sample_projects\Lab1_Color_Triangle
+echo   or your newly created folder inside PROJECTS), and execute:
 echo.
 echo       make win
 echo.
@@ -289,23 +309,23 @@ echo Press any key to return to the menu...
 pause >nul
 goto FINISH
 
-:OPTION_2
+:OPTION_3
 cls
 echo ============================================================
 echo   Opening OpenGL Technical Notes in default browser...
 echo ============================================================
-echo   URL: https://github.com/b1tranger/opengl_setup_script/tree/main/notes
+echo   URL: https://github.com/b1tranger/opengl_setup_script/tree/main/doc/notes
 echo.
-start "" "https://github.com/b1tranger/opengl_setup_script/tree/main/notes"
+start "" "https://github.com/b1tranger/opengl_setup_script/tree/main/doc/notes"
 echo.
 echo Press any key to return to the menu...
 pause >nul
 goto FINISH
 
-:OPTION_3
+:OPTION_4
 cls
 echo ============================================================
-echo   Deploying Mesa3D Software Renderer to Sample Projects...
+echo   Deploying Mesa3D Software Renderer to Projects...
 echo ============================================================
 echo.
 if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
@@ -320,7 +340,16 @@ if exist "%LOCAL_MESA_DIR%\opengl32.dll" (
         echo      [COPIED] Mesa3D deployed to: %%~nxD\build
     )
 
-    echo   3. Configuring automated background deployment for 'make win'...
+    if exist "%PROJECT_ROOT%\PROJECTS" (
+        echo   3. Deploying Mesa3D to custom projects in PROJECTS...
+        for /d %%D in ("%PROJECT_ROOT%\PROJECTS\*") do (
+            if not exist "%%D\build" mkdir "%%D\build"
+            copy /Y "%LOCAL_MESA_DIR%\*.dll" "%%D\build\" >nul 2>&1
+            echo      [COPIED] Mesa3D deployed to: PROJECTS\%%~nxD\build
+        )
+    )
+
+    echo   4. Configuring automated background deployment for 'make win'...
     if exist "%LOCAL_MESA_DIR%\mesa_wrapper.cpp" (
         pushd "%LOCAL_MESA_DIR%"
         g++.exe -std=c++17 -O2 mesa_wrapper.cpp -o mesa_wrapper.exe >nul 2>&1

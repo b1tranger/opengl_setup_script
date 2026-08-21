@@ -3,13 +3,21 @@
 
 #include <iostream>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 int main()
 {
     // Initialize and configure GLFW
     if (!glfwInit())
     {
         std::cerr << "[FAIL] Failed to initialize GLFW." << std::endl;
+#ifdef _WIN32
+        TerminateProcess(GetCurrentProcess(), 1);
+#else
         return -1;
+#endif
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -27,8 +35,12 @@ int main()
     if (window == NULL)
     {
         std::cerr << "[FAIL] Failed to create GLFW window with OpenGL 3.3 Core Profile." << std::endl;
+#ifdef _WIN32
+        TerminateProcess(GetCurrentProcess(), 1);
+#else
         glfwTerminate();
         return -1;
+#endif
     }
 
     glfwMakeContextCurrent(window);
@@ -37,9 +49,13 @@ int main()
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cerr << "[FAIL] Failed to initialize GLAD." << std::endl;
+#ifdef _WIN32
+        TerminateProcess(GetCurrentProcess(), 1);
+#else
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
+#endif
     }
 
     // Print diagnostic GPU info
@@ -53,8 +69,13 @@ int main()
     if (renderer) std::cout << "  - Renderer:       " << renderer << std::endl;
     if (version)  std::cout << "  - OpenGL Version: " << version << std::endl;
     if (glsl)     std::cout << "  - GLSL Version:   " << glsl << std::endl;
+    std::cout << std::flush;
 
+#ifdef _WIN32
+    TerminateProcess(GetCurrentProcess(), 0);
+#else
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+#endif
 }

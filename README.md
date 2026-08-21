@@ -82,19 +82,16 @@ g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./
 > `sudo apt update && sudo apt install build-essential libglfw3-dev libgl1-mesa-dev`  
 > Then run `make linux` in any project directory.
 
----
+### Creating Custom Projects Automatically
+To scaffold a new custom OpenGL project with full boilerplate, libraries, and build scripts:
 
-
-## ✨ Key Features & Technical Fixes
-
-- ⚡ **1-Click Self-Elevating Installer**: `install_opengl_admin.bat` automatically requests Administrator privileges and automates the entire toolchain installation.
-- 📦 **Offline-First Package Deployment**: Installs GCC compiler and Make build utilities from pre-downloaded package archives in `Dependencies\msys2_packages` without requiring an active internet connection.
-- 🛠️ **Non-Destructive PATH Registration**: Appends MSYS2 binary directories to Windows Machine environment variables using PowerShell registry access, preventing legacy `setx` string-truncation bugs.
-- 🧩 **VS Code Makefile Tools Integration**: Detects VS Code and installs `ms-vscode.makefile-tools` from local `.vsix` in `Dependencies\vscode_extensions`.
-- 🖥️ **Live GPU & OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and hidden-window context tests.
-- 🚀 **Built-in Mesa3D Software Renderer Auto-Fix**: Automatically detects legacy GPUs (e.g. Intel HD Graphics 2000/3000 / Sandy Bridge on Intel Core i3-2100), stores Mesa3D in central system storage, and transparently hooks `g++` / `make` so `make win` auto-copies the required DLLs and runs seamlessly in ANY project folder on the system.
-- 🔧 **GLAD Include Fixes**: Resolves `#include <KHR/khrplatform.h>` compiler errors out of the box using clean relative include paths.
-- 📁 **Cross-Platform Makefiles**: Ready-to-use Makefile configuration with targets for both Windows (`make win`) and Linux (`make linux`).
+```cmd
+cd PROJECTS
+create_project.bat "Lab3_Lighting"
+```
+* **No Administrator privileges required**: Generates the project folder inside `PROJECTS/`.
+* **Automatic Exploration**: Automatically opens the new project in Windows File Explorer and launches a Command Prompt (CMD) window navigated directly into the folder.
+* Simply type `make win` to build and run!
 
 ---
 
@@ -109,14 +106,27 @@ g++.exe -fdiagnostics-color=always -I./include ./src/main.cpp ./src/glad.c -o ./
 
 ---
 
-## 🧹 Uninstallation & Cleanup (`uninstall_opengl_admin.bat`)
+## ✨ Key Features & Technical Fixes
 
-To clean up built binaries, remove PATH registrations, or completely uninstall MSYS2:
+- ⚡ **1-Click Self-Elevating Installer**: `install_opengl_admin.bat` automatically requests Administrator privileges and automates the entire toolchain installation in 5 streamlined steps.
+- 📦 **Offline-First Package Deployment**: Installs GCC compiler and Make build utilities from pre-downloaded package archives in `Dependencies\msys2_packages` without requiring an active internet connection.
+- 🛠️ **Non-Destructive PATH Registration**: Appends MSYS2 binary directories to Windows Machine environment variables using PowerShell registry access, preventing legacy `setx` string-truncation bugs.
+- 🖥️ **Live GPU & OpenGL 3.3 Diagnostic Verification**: Runs automated live hardware detection and headless context tests to ensure your GPU is ready.
+- 🚀 **Conditional Mesa3D Software Renderer Auto-Fix**: Automatically detects legacy GPUs (e.g. Intel HD Graphics 2000/3000 / Sandy Bridge on Intel Core i3-2100) and transparently hooks `make win` on older machines without bloating modern PCs.
+- ⚡ **Ultralight Project Scaffolding**: `PROJECTS/create_project.bat` creates projects with only ~305 KB `glfw3.dll`, auto-opening both File Explorer and a ready-to-use CMD prompt.
+- 🔧 **GLAD Include Fixes**: Resolves `#include <KHR/khrplatform.h>` compiler errors out of the box using clean relative include paths.
+- 📁 **Cross-Platform Makefiles**: Ready-to-use Makefile configuration with targets for both Windows (`make win`) and Linux (`make linux`).
+
+---
+
+## 🧹 Uninstallation & Maintenance
+
+To remove compiled binaries, uninstall packages, or completely uninstall MSYS2:
 
 1. Right-click **`uninstall_opengl_admin.bat`** and select **Run as Administrator**.
-2. Select your desired option:
-   - **`[1]` Remove MSYS2 paths from System PATH**: Removes `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` from Windows System PATH.
-   - **`[2]` Clean compiled output binaries**: Deletes all generated `main.exe` files across sample project build folders.
+2. Select your desired maintenance operation:
+   - **`[1]` Remove PATH entries**: Removes MSYS2 paths from System `PATH`.
+   - **`[2]` Delete build binaries**: Deletes all compiled `main.exe` files across sample projects.
    - **`[3]` Uninstall MSYS2 packages**: Runs `pacman -Rns base-devel gcc` and cleans package cache.
    - **`[4]` Full Uninstallation**: Completely removes the `C:\msys64` directory, cleans System PATH entries, and deletes output binaries.
 
@@ -125,9 +135,9 @@ To clean up built binaries, remove PATH registrations, or completely uninstall M
 ## 📚 Technical Guides & Reference Notes
 
 - **[guide.md](guide.md)** — Comprehensive technical setup guide, root causes of common setup errors, and troubleshooting steps.
-- **[notes/manualSetupGuide.md](notes/manualSetupGuide.md)** — Manual step-by-step setup guide for MSYS2, MinGW toolchains, compiler commands, and PATH configuration.
-- **[notes/colorGuide.md](notes/colorGuide.md)** — OpenGL RGB color model, normalized color floats `[0.0, 1.0]`, and shader gradient interpolation.
-- **[notes/circleGuide.md](notes/circleGuide.md)** — Circle rasterization techniques (trigonometric polygon approximation, Midpoint circle algorithm, and GLSL fragment shaders).
+- **[doc/notes/manualSetupGuide.md](doc/notes/manualSetupGuide.md)** — Manual step-by-step setup guide for MSYS2, MinGW toolchains, compiler commands, and PATH configuration.
+- **[doc/notes/colorGuide.md](doc/notes/colorGuide.md)** — OpenGL RGB color model, normalized color floats `[0.0, 1.0]`, and shader gradient interpolation.
+- **[doc/notes/circleGuide.md](doc/notes/circleGuide.md)** — Circle rasterization techniques (trigonometric polygon approximation, Midpoint circle algorithm, and GLSL fragment shaders).
 
 ---
 
@@ -140,21 +150,24 @@ opengl_setup_script/
 ├── install_opengl_admin.bat       # Self-elevating Administrator installer (1-Click setup)
 ├── uninstall_opengl_admin.bat     # Administrator cleanup & uninstallation script
 ├── Dependencies/                  # Localized offline setup dependencies
+│   ├── Graphics_Lab_Install_AG/   # Core offline MSYS2 installer & original setup reference
+│   │   ├── msys2-x86_64-20260611.exe
+│   │   └── Setup.pdf
 │   ├── mesa3d/                    # Localized Mesa3D (llvmpipe OpenGL 4.6) software renderer DLLs
 │   ├── msys2_packages/            # Pre-downloaded pacman package archives (.pkg.tar.zst)
 │   └── vscode_extensions/         # Localized VS Code Makefile Tools extension (.vsix)
-├── Graphics_Lab_Install_AG/       # Core install dependencies & setup guide
-│   ├── msys2-x86_64-20260611.exe  # Latest MSYS2 64-bit installer executable
-│   └── Setup.pdf                  # Setup instructions & original lab setup reference
+├── PROJECTS/                      # Directory for user-created custom projects
+│   └── create_project.bat         # Automated scaffolding script for new projects
 ├── sample_projects/               # Structured Modern OpenGL sample projects
 │   ├── setup_hardware_test/       # Headless diagnostic hardware test
 │   ├── Lab0_Basic_Window/         # Basic 2D House Graphics & viewport callbacks
 │   ├── Lab1_Color_Triangle/       # OpenGL 3.3 Core Profile programmable shader RGB triangle
 │   └── Lab2_Interactive_Input/    # Interactive keyboard callbacks & background color controls
-└── notes/                         # Technical guides & Computer Graphics lab notes
-    ├── manualSetupGuide.md        # Consolidated manual setup, PATH, Makefile, & batch architecture guide
-    ├── colorGuide.md              # OpenGL RGB color palettes & gradient interpolation guide
-    └── circleGuide.md             # Circle drawing algorithms (Trig loops, Midpoint, GLSL Shaders)
+└── doc/                           # Documentation and technical reference notes
+    └── notes/                     # Technical guides & Computer Graphics lab notes
+        ├── manualSetupGuide.md    # Consolidated manual setup, PATH, Makefile, & batch architecture guide
+        ├── colorGuide.md          # OpenGL RGB color palettes & gradient interpolation guide
+        └── circleGuide.md         # Circle drawing algorithms (Trig loops, Midpoint, GLSL Shaders)
 ```
 
 ---
