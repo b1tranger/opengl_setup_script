@@ -9,7 +9,11 @@ setlocal EnableDelayedExpansion
 
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "ROOT_DIR=%%~fI"
-set "TEMPLATE_DIR=%ROOT_DIR%\sample_projects\Lab0_Basic_Window"
+set "TEMPLATE_DIR=%ROOT_DIR%\Dependencies\template"
+if not exist "%TEMPLATE_DIR%\include" (
+    set "TEMPLATE_DIR=%ROOT_DIR%\sample_projects\Lab0_Basic_Window"
+)
+set "BLANK_SRC=%ROOT_DIR%\Dependencies\template\src\main.cpp"
 set "MESA_DIR=%ROOT_DIR%\Dependencies\mesa3d"
 
 echo ============================================================
@@ -42,7 +46,7 @@ if exist "%TARGET_DIR%" (
 )
 
 echo.
-echo [*] Initializing project '%PROJECT_NAME%' in:
+echo [*] Initializing blank project '%PROJECT_NAME%' in:
 echo     %TARGET_DIR%
 echo.
 
@@ -85,15 +89,17 @@ if exist "%TEMPLATE_DIR%\build\glfw3.dll" (
     copy /Y "%TEMPLATE_DIR%\lib\glfw3.dll" "%TARGET_DIR%\build\" >nul
 )
 
-:: 4. Copy Starter main.cpp
-echo [4/4] Generating starter source code in 'src\main.cpp'...
-if exist "%TEMPLATE_DIR%\src\main.cpp" (
+:: 4. Generate Blank Starter main.cpp
+echo [4/4] Generating blank starter source code in 'src\main.cpp'...
+if exist "%BLANK_SRC%" (
+    copy /Y "%BLANK_SRC%" "%TARGET_DIR%\src\main.cpp" >nul
+) else if exist "%TEMPLATE_DIR%\src\main.cpp" (
     copy /Y "%TEMPLATE_DIR%\src\main.cpp" "%TARGET_DIR%\src\main.cpp" >nul
 )
 
 echo.
 echo ============================================================
-echo   [SUCCESS] Project '%PROJECT_NAME%' created successfully!
+echo   [SUCCESS] Blank project '%PROJECT_NAME%' created successfully!
 echo ============================================================
 echo.
 echo Location:

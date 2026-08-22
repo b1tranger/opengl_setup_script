@@ -155,6 +155,7 @@ opengl_setup_script/
 │   │   └── Setup.pdf
 │   ├── mesa3d/                    # Localized Mesa3D (llvmpipe OpenGL 4.6) software renderer DLLs
 │   ├── msys2_packages/            # Pre-downloaded pacman package archives (.pkg.tar.zst)
+│   ├── template/                  # Pristine blank Modern OpenGL starter template for create_project.bat
 │   └── vscode_extensions/         # Localized VS Code Makefile Tools extension (.vsix)
 ├── PROJECTS/                      # Directory for user-created custom projects
 │   └── create_project.bat         # Automated scaffolding script for new projects
