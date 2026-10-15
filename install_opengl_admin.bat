@@ -18,7 +18,8 @@ echo ============================================================
 echo.
 
 set "MSYS2_DIR=C:\msys64"
-set "INSTALLER_EXE=%PROJECT_ROOT%\Dependencies\Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe"
+set "INSTALLER_EXE=%PROJECT_ROOT%\Dependencies\Graphics_Lab_Install_AG\msys2-x86_64-20260927.exe"
+for %%F in ("%PROJECT_ROOT%\Dependencies\Graphics_Lab_Install_AG\msys2-x86_64-*.exe") do set "INSTALLER_EXE=%%~fF"
 set "LOCAL_PKG_DIR=%PROJECT_ROOT%\Dependencies\msys2_packages"
 set "LOCAL_MESA_DIR=%PROJECT_ROOT%\Dependencies\mesa3d"
 set "GALLIUM_DRIVER=llvmpipe"
@@ -30,7 +31,8 @@ if exist "%MSYS2_DIR%\usr\bin\bash.exe" goto MSYS_OK
 echo [NOT FOUND] MSYS2 is not installed at "%MSYS2_DIR%".
 if not exist "%INSTALLER_EXE%" goto INSTALLER_MISSING
 
-echo Launching MSYS2 installer: msys2-x86_64-20260611.exe...
+for %%A in ("%INSTALLER_EXE%") do set "INSTALLER_NAME=%%~nxA"
+echo Launching MSYS2 installer: !INSTALLER_NAME!...
 echo Please complete the setup wizard using default path C:\msys64
 start /wait "" "%INSTALLER_EXE%"
 goto CHECK_MSYS_AGAIN
@@ -68,12 +70,18 @@ if exist "%LOCAL_PKG_DIR%\*.pkg.tar.zst" (
     echo Populating MSYS2 local pacman cache...
     del /F /Q "%MSYS2_DIR%\var\cache\pacman\pkg\*.pkg.tar.zst" >nul 2>&1
     xcopy /Y /Q "%LOCAL_PKG_DIR%\*.pkg.tar.zst" "%MSYS2_DIR%\var\cache\pacman\pkg\" >nul 2>&1
+    echo Installing packages from local cache via MSYS2 pacman...
+    "%MSYS2_DIR%\usr\bin\bash.exe" -lc "export MSYSTEM=MSYS MSYS=winsymlinks:nativestrict && pacman -U --needed --noconfirm /var/cache/pacman/pkg/*.pkg.tar.zst"
 ) else (
-    echo [NETWORK FALLBACK] Local package archives not found. Will download via network...
+    echo [NETWORK FALLBACK] Local package archives not found. Downloading via network...
+    "%MSYS2_DIR%\usr\bin\bash.exe" -lc "export MSYSTEM=MSYS MSYS=winsymlinks:nativestrict && pacman -Sy --needed --noconfirm base-devel gcc"
 )
 
-echo Installing packages via MSYS2 pacman...
-"%MSYS2_DIR%\usr\bin\bash.exe" -lc "export MSYSTEM=MSYS MSYS=winsymlinks:nativestrict && pacman -U --needed --noconfirm /var/cache/pacman/pkg/*.pkg.tar.zst"
+:: Verify compiler installation; fallback to network pacman install if needed
+if not exist "%MSYS2_DIR%\usr\bin\g++.exe" (
+    echo [FALLBACK] C++ compiler not detected. Attempting network pacman installation...
+    "%MSYS2_DIR%\usr\bin\bash.exe" -lc "export MSYSTEM=MSYS MSYS=winsymlinks:nativestrict && pacman -Sy --needed --noconfirm base-devel gcc"
+)
 
 :: 3. Configure System Environment Variables (PATH)
 echo.

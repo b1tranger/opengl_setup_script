@@ -1,4 +1,5 @@
 /temp
 *.exe
-!Dependencies/Graphics_Lab_Install_AG/msys2-x86_64-20260611.exe
+!Dependencies/Graphics_Lab_Install_AG/msys2-x86_64-20260927.exe
+!Dependencies/Graphics_Lab_Install_AG/*.exe
 sample_projects/Lab0_Basic_Window/build/main.exe

@@ -35,7 +35,7 @@ Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_
 1. Right-click **`install_opengl_admin.bat`** and select **Run as Administrator** (or double-click to run with self-elevation).
 2. Confirm the Windows UAC prompt when prompted.
 3. The script executes the automated 5-step setup workflow:
-   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64`. If missing, launches the bundled `Dependencies\Graphics_Lab_Install_AG\msys2-x86_64-20260611.exe` installer.
+   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64`. If missing, launches the bundled `Dependencies\Graphics_Lab_Install_AG\msys2-x86_64-20260927.exe` installer.
    - **[2/5] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` (with automatic network fallback) and installs `base-devel`, `gcc`, `g++`, and `make`.
    - **[3/5] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without character-length truncation.
    - **[4/5] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
@@ -151,7 +151,7 @@ opengl_setup_script/
 ├── uninstall_opengl_admin.bat     # Administrator cleanup & uninstallation script
 ├── Dependencies/                  # Localized offline setup dependencies
 │   ├── Graphics_Lab_Install_AG/   # Core offline MSYS2 installer & original setup reference
-│   │   ├── msys2-x86_64-20260611.exe
+│   │   ├── msys2-x86_64-20260927.exe
 │   │   └── Setup.pdf
 │   ├── mesa3d/                    # Localized Mesa3D (llvmpipe OpenGL 4.6) software renderer DLLs
 │   ├── msys2_packages/            # Pre-downloaded pacman package archives (.pkg.tar.zst)

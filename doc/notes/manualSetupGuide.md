@@ -119,7 +119,7 @@ flowchart TD
     B -- No --> C[Self-Elevate via PowerShell Start-Process RunAs]
     C --> B
     B -- Yes --> D{MSYS2 at C:\\msys64?}
-    D -- No --> E[Run msys2-x86_64-20260611.exe Installer]
+    D -- No --> E[Run msys2-x86_64-20260927.exe Installer]
     E --> F[Wait for Installation]
     D -- Yes --> F
     F --> G[Run pacman -Sy --noconfirm base-devel gcc]

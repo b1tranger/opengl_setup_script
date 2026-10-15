@@ -89,6 +89,13 @@ if exist "%TEMPLATE_DIR%\build\glfw3.dll" (
     copy /Y "%TEMPLATE_DIR%\lib\glfw3.dll" "%TARGET_DIR%\build\" >nul
 )
 
+:: If legacy hardware Mesa3D mode is active, deploy Mesa3D DLLs to build/
+if exist "C:\msys64\opt\mesa3d\opengl32.dll" (
+    if exist "%MESA_DIR%\opengl32.dll" (
+        copy /Y "%MESA_DIR%\*.dll" "%TARGET_DIR%\build\" >nul 2>&1
+    )
+)
+
 :: 4. Generate Blank Starter main.cpp
 echo [4/4] Generating blank starter source code in 'src\main.cpp'...
 if exist "%BLANK_SRC%" (

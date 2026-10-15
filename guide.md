@@ -43,7 +43,7 @@ To automatically install MSYS2, package dependencies, verify hardware capabiliti
 1. Right-click **`install_opengl_admin.bat`** and select **Run as administrator** (or double-click to self-elevate).
 2. Click **Yes** on the Windows UAC elevation prompt.
 3. The script executes the automated 5-step setup workflow:
-   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64` (installs `msys2-x86_64-20260611.exe` if missing).
+   - **[1/5] MSYS2 Detection/Installation**: Checks for an existing MSYS2 installation at `C:\msys64` (installs `msys2-x86_64-20260927.exe` if missing).
    - **[2/5] Offline-First Toolchain Setup**: Populates MSYS2 pacman cache using pre-packaged offline archives from `Dependencies\msys2_packages` and installs `base-devel`, `gcc`, `g++`, and `make`.
    - **[3/5] Safe System PATH Registration**: Safely adds `C:\msys64\usr\bin` and `C:\msys64\mingw64\bin` to Machine/System `PATH` via PowerShell environment registry modification without string-length truncation.
    - **[4/5] Toolchain Verification**: Verifies `g++.exe` and `make.exe` availability.
