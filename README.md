@@ -13,6 +13,17 @@ Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_
 
 ---
 
+
+## 🎥 Video Walkthrough
+
+Watch the step-by-step video guide:
+
+<a href="https://youtu.be/AXdDEYzfdxI"><img width="1488" height="837" alt="Modern OpenGL Setup Video Guide" src="https://github.com/user-attachments/assets/a9f2f281-d7be-4b21-8a2f-58d0e232fb4b" /></a>
+
+(The files shown in the video may be outdated, but the steps and the core batch installation file should remain the same. Also, make sure to reach out to me for any encountered issues so I can fix them)
+
+---
+
 ## ⚡ Quick Start (Automated Setup)
 
 
@@ -50,13 +61,6 @@ Some files are taken from: https://github.com/AudityGhosh/Computer_Graphics_and_
 ---
 
 
-## 🎥 Video Walkthrough
-
-Watch the step-by-step video guide:
-
-<a href="https://youtu.be/AXdDEYzfdxI"><img width="1488" height="837" alt="Modern OpenGL Setup Video Guide" src="https://github.com/user-attachments/assets/a9f2f281-d7be-4b21-8a2f-58d0e232fb4b" /></a>
-
----
 
 ## 🛠️ How to Build & Run Projects
 
